@@ -87,7 +87,7 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
 const API_KEY  = "183930463902db8616a702c3c3c875687e7f85b717d1ac6352473b3b9d390f5f";
 const KEYWORDS = ["전시","홍보관","과학관","체험","박물관","행사","홍보","인테리어","디자인","공간"];
 const DAYS     = 60;
-const BASE_URL = "https://apis.data.go.kr/1230000/BidPublicInfoService/getBidPblancListInfoServcPPSSrch";
+const BASE_URL = "https://api.allorigins.win/raw?url=" + encodeURIComponent("http://apis.data.go.kr/1230000/BidPublicInfoService/getBidPblancListInfoServcPPSSrch");
 let DATA = [], selectedKw = [];
 let calY = new Date().getFullYear(), calM = new Date().getMonth()+1, calOpen = false;
 let loading = false;
