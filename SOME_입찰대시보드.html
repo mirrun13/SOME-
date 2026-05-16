@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOME 입찰계획 — 나라장터 실시간</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+<style>
+body{font-family:'Noto Sans KR',system-ui,sans-serif;}
+.mc{transition:all .3s cubic-bezier(.4,0,.2,1);background:#1e2937;}
+.mc:hover{transform:translateY(-3px);box-shadow:0 12px 24px -4px rgb(0 0 0/.5);}
+.kn{font-size:42px;font-weight:700;line-height:1;color:#f8fafc;}
+.ka{background:#f8fafc!important;color:#0f172a!important;border-color:#f8fafc!important;}
+.lc2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.spin{animation:sp 1s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body class="bg-slate-950 text-slate-200 min-h-screen">
+
+<div class="max-w-screen-xl mx-auto px-6 py-10">
+
+  <div class="flex items-end justify-between mb-10 flex-wrap gap-4">
+    <div>
+      <h1 class="text-4xl font-bold tracking-tight text-white">SOME 입찰계획</h1>
+      <p class="text-slate-400 mt-2 text-sm" id="subtitle">나라장터 실시간 연동 · 로딩 전</p>
+    </div>
+    <button onclick="fetchAll()" id="searchBtn"
+      class="px-6 py-3 bg-blue-600 hover:bg-blue-500 active:scale-95 text-sm font-bold text-white rounded-2xl flex items-center gap-2.5 transition-all shadow-lg shadow-blue-900/40">
+      <i class="fas fa-magnifying-glass text-xs" id="searchIco"></i>
+      <span id="searchTxt">나라장터 검색</span>
+    </button>
+  </div>
+
+  <div id="banner" class="hidden mb-6 p-4 rounded-2xl border text-sm flex items-start gap-3"></div>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+    <div class="mc p-6 rounded-3xl border border-slate-700"><div class="text-sm text-slate-400 mb-1">전체 진행중</div><div class="kn" id="k1">—</div></div>
+    <div class="mc p-6 rounded-3xl border-l-4 border-red-500"><div class="text-sm text-red-400 mb-1">긴급 (D-7이하)</div><div class="kn text-red-400" id="k2">—</div></div>
+    <div class="mc p-6 rounded-3xl border-l-4 border-blue-500"><div class="text-sm text-blue-400 mb-1">Track A (제안)</div><div class="kn text-blue-400" id="k3">—</div></div>
+    <div class="mc p-6 rounded-3xl border-l-4 border-emerald-500"><div class="text-sm text-emerald-400 mb-1">Track B (투찰)</div><div class="kn text-emerald-400" id="k4">—</div></div>
+  </div>
+
+  <div class="mb-8">
+    <p class="text-xs text-slate-500 mb-3 px-1">키워드 필터</p>
+    <div class="flex flex-wrap gap-2" id="kwTags"></div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div>
+      <div class="flex items-center gap-2 mb-4 px-1"><div class="w-2.5 h-2.5 bg-blue-500 rounded-full"></div><span class="text-sm font-semibold text-slate-400">Track A — 제안</span></div>
+      <div id="trackA" class="space-y-3">
+        <div class="mc rounded-3xl p-10 border border-slate-700 text-center text-slate-500 text-sm">위 버튼을 눌러 데이터를 불러오세요</div>
+      </div>
+    </div>
+    <div>
+      <div class="flex items-center gap-2 mb-4 px-1"><div class="w-2.5 h-2.5 bg-emerald-500 rounded-full"></div><span class="text-sm font-semibold text-slate-400">Track B — 투찰</span></div>
+      <div id="trackB" class="space-y-3">
+        <div class="mc rounded-3xl p-10 border border-slate-700 text-center text-slate-500 text-sm">위 버튼을 눌러 데이터를 불러오세요</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="fixed bottom-8 right-8 z-50">
+  <div id="ci" onclick="toggleCal()" class="w-16 h-16 bg-white rounded-3xl flex flex-col items-center justify-center cursor-pointer shadow-xl hover:shadow-2xl active:scale-95 transition-all">
+    <div class="text-slate-900 text-[10px] font-medium tracking-widest" id="cy">2026</div>
+    <div class="text-slate-900 text-4xl font-bold leading-none" id="cm">05</div>
+  </div>
+  <div id="cp" class="hidden absolute bottom-0 right-0 bg-slate-900 rounded-3xl shadow-2xl p-5 w-72 border border-slate-700">
+    <div class="flex items-center justify-between mb-3">
+      <button onclick="prevM()" class="w-8 h-8 text-2xl text-slate-400 hover:text-white flex items-center justify-center">‹</button>
+      <span class="font-semibold" id="calTitle"></span>
+      <button onclick="nextM()" class="w-8 h-8 text-2xl text-slate-400 hover:text-white flex items-center justify-center">›</button>
+    </div>
+    <div id="calGrid" class="grid grid-cols-7 gap-1 text-center text-sm"></div>
+    <div class="mt-4 pt-4 border-t border-slate-700">
+      <div class="text-sm font-semibold mb-2 text-slate-300" id="calDate">날짜를 선택하세요</div>
+      <div id="calBids" class="space-y-2 text-sm max-h-44 overflow-auto"></div>
+    </div>
+    <div class="mt-3 text-center"><button onclick="toggleCal()" class="text-xs text-slate-400 hover:text-white">닫기</button></div>
+  </div>
+</div>
+
+<script>
+const API_KEY  = "183930463902db8616a702c3c3c875687e7f85b717d1ac6352473b3b9d390f5f";
+const KEYWORDS = ["전시","홍보관","과학관","체험","박물관","행사","홍보","인테리어","디자인","공간"];
+const DAYS     = 60;
+const BASE_URL = "https://apis.data.go.kr/1230000/ad/BidPublicInfoService/getBidPblancListInfoServcPPSSrch";
+
+let DATA = [], selectedKw = [];
+let calY = new Date().getFullYear(), calM = new Date().getMonth()+1, calOpen = false;
+let loading = false;
+
+function buildUrl(keyword) {
+  const now = new Date(), end = new Date(now.getTime() + DAYS*86400000);
+  const fmt = d => `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+  return `${BASE_URL}?ServiceKey=${API_KEY}&pageNo=1&numOfRows=100&type=json&inqryDiv=1&inqryBgnDt=${fmt(now)}0000&inqryEndDt=${fmt(end)}2359&bidNtceNm=${encodeURIComponent(keyword)}`;
+}
+
+async function fetchAll() {
+  if (loading) return;
+  loading = true;
+  setLoading(true);
+  hideBanner();
+
+  const seen = new Set(), results = [];
+
+  for (let i = 0; i < KEYWORDS.length; i++) {
+    const kw = KEYWORDS[i];
+    try {
+      const r = await fetch(buildUrl(kw));
+      if (!r.ok) continue;
+      const data = await r.json();
+      
+      if (data?.response?.header?.resultCode !== '00') {
+        console.warn(`${kw}: ${data?.response?.header?.resultMsg}`);
+        continue;
+      }
+      
+      let items = data?.response?.body?.items;
+      if (!items) continue;
+      if (!Array.isArray(items)) items = [items];
+      
+      for (const item of items) {
+        const b = parseBid(item, kw);
+        if (!b.title || seen.has(b.id)) continue;
+        seen.add(b.id);
+        results.push(b);
+      }
+    } catch (e) { 
+      console.warn(kw, e); 
+    }
+  }
+
+  if (results.length === 0) {
+    showBanner('warn', '⚠️ 키워드에 해당하는 공고가 없습니다.');
+  } else {
+    DATA = results.sort((a,b) => a.dday - b.dday);
+    updateKPI();
+    renderKwTags();
+    renderCards();
+    buildCal();
+    const now = new Date();
+    document.getElementById('subtitle').textContent =
+      `나라장터 실시간 연동 · ${now.getMonth()+1}월 ${now.getDate()}일 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} 업데이트`;
+    showBanner('ok', `✅ 총 ${DATA.length}건의 공고를 불러왔습니다.`);
+  }
+
+  loading = false;
+  setLoading(false);
+}
+
+function parseBid(item, kw) {
+  const dlRaw = (item.bidCloseDateTime || item.opengDateTime || (item.bidNtceDt||'')+" 18:00").slice(0,16);
+  let dday = 99, dl = dlRaw;
+  try { dday = Math.max(0, Math.ceil((new Date(dlRaw) - new Date()) / 86400000)); } catch {}
+
+  const methods = `${item.cntrctCnclsMthd||''} ${item.bidMethdNm||''} ${item.prsnatnOprtnDivNm||''}`;
+  const track = /협상|기술제안|제안서|2단계|설계공모/.test(methods) ? 'A' : 'B';
+
+  const fmtAmt = v => {
+    try {
+      const n = parseInt(String(v).replace(/,/g,''));
+      if (!n) return '미정';
+      if (n >= 100000000) return (n/100000000).toFixed(1)+'억';
+      if (n >= 10000) return Math.floor(n/10000)+'만원';
+      return n.toLocaleString()+'원';
+    } catch { return v||'미정'; }
+  };
+
+  const bidNo = item.bidNtceNo || "";
+  const url = item.linkUrl || (bidNo ? `https://www.g2b.go.kr:8101/ep/tbid/tbBidList.do?bidno=${bidNo}` : "https://www.g2b.go.kr");
+
+  return {
+    id: `${item.bidNtceNo||''}-${item.bidNtceOrd||'000'}`,
+    title: item.bidNtceNm || '',
+    client: item.dminsttNm || item.ntceInsttNm || '',
+    deadline: dl,
+    dday,
+    value: fmtAmt(item.presmptPrce || item.bdgtAmt),
+    track,
+    url,
+    kw,
+    participating: false
+  };
+}
+
+function setLoading(on) {
+  document.getElementById('searchIco').className = on ? 'fas fa-circle-notch text-xs spin' : 'fas fa-magnifying-glass text-xs';
+  document.getElementById('searchTxt').textContent = on ? '검색 중...' : '나라장터 검색';
+  document.getElementById('searchBtn').disabled = on;
+}
+
+function showBanner(type, msg) {
+  const b = document.getElementById('banner');
+  const cfg = {
+    ok: 'bg-emerald-900/40 border-emerald-700 text-emerald-300',
+    warn: 'bg-yellow-900/40 border-yellow-700 text-yellow-300',
+  }[type];
+  b.className = `mb-6 p-4 rounded-2xl border text-sm flex items-start gap-3 ${cfg}`;
+  b.textContent = msg;
+  b.classList.remove('hidden');
+}
+function hideBanner() { document.getElementById('banner').classList.add('hidden'); }
+
+function updateKPI() {
+  document.getElementById('k1').textContent = DATA.length;
+  document.getElementById('k2').textContent = DATA.filter(b=>b.dday<=7).length;
+  document.getElementById('k3').textContent = DATA.filter(b=>b.track==='A').length;
+  document.getElementById('k4').textContent = DATA.filter(b=>b.track==='B').length;
+}
+
+function renderKwTags() {
+  const kws = [...new Set(DATA.map(b=>b.kw))].sort();
+  document.getElementById('kwTags').innerHTML = kws.map(k =>
+    `<span onclick="toggleKw('${k}',this)" class="px-3 py-1 text-xs bg-slate-800 border border-slate-700 rounded-2xl cursor-pointer hover:bg-slate-700 text-slate-300 transition-all">${k}</span>`
+  ).join('');
+}
+
+function toggleKw(kw, el) {
+  selectedKw = selectedKw.includes(kw) ? selectedKw.filter(x=>x!==kw) : [...selectedKw, kw];
+  el.classList.toggle('ka', selectedKw.includes(kw));
+  renderCards();
+}
+
+function renderCards() {
+  const show = selectedKw.length ? DATA.filter(b=>selectedKw.includes(b.kw)) : DATA;
+  const empty = `<div class="mc rounded-3xl p-10 border border-slate-700 text-center text-slate-500 text-sm">공고 없음</div>`;
+  const mk = arr => arr.length ? arr.map(cardHtml).join('') : empty;
+  document.getElementById('trackA').innerHTML = mk(show.filter(b=>b.track==='A'));
+  document.getElementById('trackB').innerHTML = mk(show.filter(b=>b.track==='B'));
+}
+
+function cardHtml(b) {
+  const col = b.track==='A' ? 'blue' : 'emerald';
+  const dc = b.dday<=7 ? 'text-red-400' : b.dday<=14 ? 'text-yellow-400' : 'text-slate-500';
+  return `<div class="mc rounded-3xl p-5 border border-slate-700">
+    <div class="flex justify-between items-start mb-4">
+      <div class="flex flex-wrap gap-1.5">
+        <span class="text-xs px-3 py-1 bg-${col}-900 text-${col}-400 rounded-2xl font-medium">Track ${b.track}</span>
+        <span class="text-xs px-2 py-1 bg-slate-700 text-slate-400 rounded-xl">${b.kw}</span>
+        ${b.dday<=7?'<span class="text-xs px-2 py-1 bg-red-900 text-red-400 rounded-xl font-bold">⚡긴급</span>':''}
+      </div>
+      <span class="${dc} text-3xl font-bold shrink-0 ml-2">D-${b.dday}</span>
+    </div>
+    <div class="mb-4">
+      <p class="font-semibold text-base leading-snug text-white lc2">${b.title}</p>
+      <p class="text-sm text-slate-400 mt-1">${b.client}</p>
+    </div>
+    <div class="flex items-center justify-between text-sm mb-4">
+      <div><span class="text-xs text-slate-500">예상</span><span class="font-bold ml-1 text-white">${b.value}</span></div>
+      <div class="flex items-center gap-2" onclick="event.stopPropagation()">
+        <input type="checkbox" ${b.participating?'checked':''} onchange="togglePart('${b.id}',this.checked)" class="accent-red-500 w-4 h-4">
+        <span class="text-xs text-slate-400">참여</span>
+      </div>
+    </div>
+    <a href="${b.url}" target="_blank" 
+      class="block w-full py-2.5 bg-slate-700/50 hover:bg-blue-600 rounded-2xl text-xs font-semibold text-center text-slate-300 hover:text-white transition-all flex items-center justify-center gap-1.5">
+      <i class="fas fa-external-link-alt"></i>나라장터 공고 보기
+    </a>
+    <div class="mt-2 text-xs text-slate-600"><i class="fas fa-clock mr-1"></i>${b.deadline}</div>
+  </div>`;
+}
+
+function togglePart(id, v) {
+  const b = DATA.find(x=>x.id===id);
+  if (b) { b.participating = v; buildCal(); }
+}
+
+function toggleCal() {
+  calOpen = !calOpen;
+  document.getElementById('ci').style.opacity = calOpen ? '0' : '1';
+  document.getElementById('ci').style.pointerEvents = calOpen ? 'none' : 'auto';
+  document.getElementById('cp').classList.toggle('hidden', !calOpen);
+  if (calOpen) buildCal();
+}
+
+function buildCal() {
+  document.getElementById('calTitle').textContent = `${calY}년 ${calM}월`;
+  document.getElementById('cy').textContent = calY;
+  document.getElementById('cm').textContent = String(calM).padStart(2,'0');
+  const g = document.getElementById('calGrid');
+  g.innerHTML = '';
+  ['일','월','화','수','목','금','토'].forEach(d => {
+    const e = document.createElement('div');
+    e.className = 'h-7 flex items-center justify-center text-xs text-slate-500 font-medium';
+    e.textContent = d; g.appendChild(e);
+  });
+  const first = new Date(calY, calM-1, 1).getDay();
+  const days = new Date(calY, calM, 0).getDate();
+  const today = new Date();
+  for (let i=0; i<first; i++) { const e=document.createElement('div'); e.className='h-8'; g.appendChild(e); }
+  for (let day=1; day<=days; day++) {
+    const hb = DATA.some(b => {
+      const d = new Date(b.deadline);
+      return b.participating && d.getFullYear()===calY && d.getMonth()+1===calM && d.getDate()===day;
+    });
+    const it = calY===today.getFullYear() && calM===today.getMonth()+1 && day===today.getDate();
+    const e = document.createElement('div');
+    e.className = `h-8 flex items-center justify-center text-sm cursor-pointer rounded-xl transition-all ${it?'bg-blue-900 text-blue-300 font-bold':''} ${hb?'ring-2 ring-red-500/60 text-red-400 font-semibold':'text-slate-300 hover:bg-slate-800'}`;
+    e.textContent = day;
+    e.onclick = () => showDay(day);
+    g.appendChild(e);
+  }
+}
+
+function prevM() { calM--; if(calM<1){calM=12;calY--;} buildCal(); }
+function nextM() { calM++; if(calM>12){calM=1;calY++;}buildCal(); }
+
+function showDay(day) {
+  document.getElementById('calDate').textContent = `${calM}월 ${day}일 마감 공고`;
+  const f = DATA.filter(b => {
+    const d = new Date(b.deadline);
+    return b.participating && d.getFullYear()===calY && d.getMonth()+1===calM && d.getDate()===day;
+  });
+  document.getElementById('calBids').innerHTML = f.length === 0
+    ? `<p class="text-slate-500 py-4 text-center text-sm">마감 공고 없음</p>`
+    : f.map(b => `<a href="${b.url}" target="_blank"
+      class="flex justify-between items-center p-3 bg-slate-800 hover:bg-slate-700 rounded-2xl cursor-pointer gap-2">
+      <div class="min-w-0 flex-1">
+        <div class="font-medium text-sm truncate">${b.title}</div>
+        <div class="text-xs text-slate-400">${b.client}</div>
+      </div>
+      <span class="font-extrabold text-red-400 shrink-0">D-${b.dday}</span>
+    </a>`).join('');
+}
+
+window.onload = () => { buildCal(); fetchAll(); };
+</script>
+</body>
+</html>
