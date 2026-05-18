@@ -20,6 +20,19 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
 </head>
 <body class="bg-slate-950 text-slate-200 min-h-screen">
 
+<div id="startupLock" class="fixed inset-0 bg-slate-950 z-[9999] flex flex-col items-center justify-center transition-opacity duration-500">
+  <div class="bg-slate-900 rounded-3xl p-10 w-96 border border-slate-700 text-center shadow-2xl">
+    <i class="fas fa-shield-alt text-4xl text-blue-500 mb-4"></i>
+    <h2 class="text-3xl font-bold text-white mb-2">SOME 대시보드</h2>
+    <p class="text-slate-400 text-sm mb-6">입장용 비밀번호를 입력해주세요</p>
+    <input type="password" id="startupPw" placeholder="비밀번호" 
+      class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-2xl text-white mb-4 focus:outline-none focus:border-blue-500 text-center tracking-widest"
+      onkeydown="if(event.key==='Enter') unlockDash()">
+    <div id="startupErr" class="text-red-400 text-sm mb-4 hidden">비밀번호가 일치하지 않습니다.</div>
+    <button onclick="unlockDash()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-2xl text-white font-bold transition">입장하기</button>
+  </div>
+</div>
+
 <div id="loginModal" class="modal hidden">
   <div class="bg-slate-900 rounded-3xl p-8 w-96 border border-slate-700">
     <h2 class="text-2xl font-bold text-white mb-2">관리자 로그인</h2>
@@ -37,17 +50,24 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
 
 <div id="pwModal" class="modal hidden">
   <div class="bg-slate-900 rounded-3xl p-8 w-96 border border-slate-700">
-    <h2 class="text-2xl font-bold text-white mb-6">비밀번호 변경</h2>
-    <input type="password" id="oldPw" placeholder="현재 비밀번호" 
-      class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-2xl text-white mb-3 focus:outline-none focus:border-blue-500">
-    <input type="password" id="newPw" placeholder="새 비밀번호 (4자 이상)" 
-      class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-2xl text-white mb-3 focus:outline-none focus:border-blue-500">
+    <h2 class="text-2xl font-bold text-white mb-6">시스템 보안 설정</h2>
+    
+    <div class="mb-6 pb-6 border-b border-slate-700">
+      <p class="text-sm text-blue-400 font-bold mb-2"><i class="fas fa-server mr-1"></i> 관리자 암호 변경 (서버용)</p>
+      <input type="password" id="oldPw" placeholder="현재 관리자 비밀번호" class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white mb-2 focus:outline-none focus:border-blue-500">
+      <input type="password" id="newPw" placeholder="새 관리자 비밀번호" class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white mb-2 focus:outline-none focus:border-blue-500">
+      <button onclick="doChangePw()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 rounded-xl text-white font-bold transition text-sm">서버 암호 변경</button>
+    </div>
+
+    <div class="mb-4">
+      <p class="text-sm text-emerald-400 font-bold mb-2"><i class="fas fa-door-lock mr-1"></i> 직원 입장용 암호 변경</p>
+      <input type="password" id="newGuestPw" placeholder="새 입장용 비밀번호" class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white mb-2 focus:outline-none focus:border-emerald-500">
+      <button onclick="changeGuestPw()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-white font-bold transition text-sm">입장 암호 적용</button>
+    </div>
+
     <div id="pwErr" class="text-red-400 text-sm mb-3 hidden"></div>
     <div id="pwOk" class="text-emerald-400 text-sm mb-3 hidden"></div>
-    <div class="flex gap-2">
-      <button onclick="doChangePw()" class="flex-1 py-3 bg-blue-600 hover:bg-blue-500 rounded-2xl text-white font-bold transition">변경</button>
-      <button onclick="closePwModal()" class="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-2xl text-white transition">닫기</button>
-    </div>
+    <button onclick="closePwModal()" class="w-full py-3 bg-slate-700 hover:bg-slate-600 rounded-2xl text-white transition font-bold mt-2">닫기</button>
   </div>
 </div>
 
@@ -229,6 +249,45 @@ let currentTab = 'dash';
 let token = localStorage.getItem('some_token') || '';
 let calY = new Date().getFullYear(), calM = new Date().getMonth()+1, calOpen = false;
 
+// 🌟 비밀번호 잠금 해제 및 관리 기능
+function unlockDash() {
+  const input = document.getElementById('startupPw').value;
+  // 직원 입장용 비밀번호 (기본값: some)
+  const guestPw = localStorage.getItem('some_guest_pw') || 'some'; 
+  // 🌟 관리자 전용 마스터 비밀번호 지정 완료
+  const ADMIN_MASTER_PW = "mir19790805"; 
+  
+  if (input === guestPw || input === ADMIN_MASTER_PW) {
+    const lock = document.getElementById('startupLock');
+    lock.style.opacity = '0';
+    setTimeout(() => lock.style.display = 'none', 500);
+    // 암호 통과 후 데이터 로드 시작
+    fetchAll(); 
+  } else {
+    document.getElementById('startupErr').classList.remove('hidden');
+    document.getElementById('startupPw').value = '';
+    document.getElementById('startupPw').focus();
+  }
+}
+
+function changeGuestPw() {
+  const newPw = document.getElementById('newGuestPw').value;
+  const err = document.getElementById('pwErr');
+  const ok = document.getElementById('pwOk');
+  err.classList.add('hidden'); ok.classList.add('hidden');
+  
+  if (!newPw) {
+    err.textContent = '변경할 입장용 비밀번호를 입력해주세요.';
+    err.classList.remove('hidden');
+    return;
+  }
+  
+  localStorage.setItem('some_guest_pw', newPw);
+  ok.textContent = '✅ 직원 입장용 비밀번호가 변경되었습니다.';
+  ok.classList.remove('hidden');
+  document.getElementById('newGuestPw').value = '';
+}
+
 async function verifyAuth() {
   if (!token) { setAdmin(false); return; }
   try {
@@ -254,7 +313,7 @@ function adminAction() {
     document.getElementById('loginModal').classList.remove('hidden');
     setTimeout(() => document.getElementById('loginPw').focus(), 100);
   } else {
-    if (confirm('관리자 메뉴:\n[확인] 비밀번호 변경\n[취소] 로그아웃')) {
+    if (confirm('관리자 메뉴:\n[확인] 비밀번호 설정\n[취소] 로그아웃')) {
       document.getElementById('pwModal').classList.remove('hidden');
     } else { doLogout(); }
   }
@@ -724,10 +783,12 @@ function showDay(day) {
       }).join('');
 }
 
+// 🌟 초기 시작 시 자물쇠 대기
 window.onload = async () => { 
   await verifyAuth();
   buildCal();
-  fetchAll(); 
+  // fetchAll()은 자물쇠가 풀리면 unlockDash() 안에서 실행됩니다.
+  document.getElementById('startupPw').focus(); 
 };
 </script>
 </body>
