@@ -15,9 +15,74 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
 .lc2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .spin{animation:sp 1s linear infinite;}
 @keyframes sp{to{transform:rotate(360deg);}}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:100;display:flex;align-items:center;justify-content:center;}
 </style>
 </head>
 <body class="bg-slate-950 text-slate-200 min-h-screen">
+
+<div id="loginModal" class="modal hidden">
+  <div class="bg-slate-900 rounded-3xl p-8 w-96 border border-slate-700">
+    <h2 class="text-2xl font-bold text-white mb-2">관리자 로그인</h2>
+    <p class="text-slate-400 text-sm mb-6">관리자 기능을 사용하려면 로그인하세요</p>
+    <input type="password" id="loginPw" placeholder="비밀번호" 
+      class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-2xl text-white mb-3 focus:outline-none focus:border-blue-500"
+      onkeydown="if(event.key==='Enter')doLogin()">
+    <div id="loginErr" class="text-red-400 text-sm mb-3 hidden"></div>
+    <div class="flex gap-2">
+      <button onclick="doLogin()" class="flex-1 py-3 bg-blue-600 hover:bg-blue-500 rounded-2xl text-white font-bold transition">로그인</button>
+      <button onclick="closeLogin()" class="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-2xl text-white transition">취소</button>
+    </div>
+  </div>
+</div>
+
+<div id="pwModal" class="modal hidden">
+  <div class="bg-slate-900 rounded-3xl p-8 w-96 border border-slate-700">
+    <h2 class="text-2xl font-bold text-white mb-6">비밀번호 변경</h2>
+    <input type="password" id="oldPw" placeholder="현재 비밀번호" 
+      class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-2xl text-white mb-3 focus:outline-none focus:border-blue-500">
+    <input type="password" id="newPw" placeholder="새 비밀번호 (4자 이상)" 
+      class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-2xl text-white mb-3 focus:outline-none focus:border-blue-500">
+    <div id="pwErr" class="text-red-400 text-sm mb-3 hidden"></div>
+    <div id="pwOk" class="text-emerald-400 text-sm mb-3 hidden"></div>
+    <div class="flex gap-2">
+      <button onclick="doChangePw()" class="flex-1 py-3 bg-blue-600 hover:bg-blue-500 rounded-2xl text-white font-bold transition">변경</button>
+      <button onclick="closePwModal()" class="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-2xl text-white transition">닫기</button>
+    </div>
+  </div>
+</div>
+
+<div id="histModal" class="modal hidden">
+  <div class="bg-slate-900 rounded-3xl p-8 w-[480px] border border-slate-700 max-h-[90vh] overflow-y-auto">
+    <h2 class="text-2xl font-bold text-white mb-6" id="histModalTitle">참여 정보 입력</h2>
+    <input type="hidden" id="histId">
+    <div class="mb-3">
+      <label class="text-xs text-slate-400 block mb-1">공고명</label>
+      <input id="histTitle" readonly class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm">
+    </div>
+    <div class="mb-3">
+      <label class="text-xs text-slate-400 block mb-1">결과</label>
+      <select id="histResult" class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm">
+        <option value="pending">대기 중</option>
+        <option value="won">당선</option>
+        <option value="lost">낙선</option>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="text-xs text-slate-400 block mb-1">메모</label>
+      <textarea id="histMemo" rows="4" placeholder="제안 내용, 견적, 코멘트 등..." 
+        class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm"></textarea>
+    </div>
+    <div class="mb-3">
+      <label class="text-xs text-slate-400 block mb-1">첨부파일 URL (Google Drive, Dropbox 등)</label>
+      <input id="histAttachUrl" placeholder="https://..." class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm mb-2">
+      <input id="histAttachName" placeholder="파일명 (예: 제안서_v1.pdf)" class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm">
+    </div>
+    <div class="flex gap-2 mt-6">
+      <button onclick="saveHistory()" class="flex-1 py-3 bg-blue-600 hover:bg-blue-500 rounded-2xl text-white font-bold transition">저장</button>
+      <button onclick="closeHistModal()" class="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-2xl text-white transition">취소</button>
+    </div>
+  </div>
+</div>
 
 <div class="max-w-screen-xl mx-auto px-6 py-10">
 
@@ -26,76 +91,239 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
       <h1 class="text-4xl font-bold tracking-tight text-white">SOME 입찰계획</h1>
       <p class="text-slate-400 mt-2 text-sm" id="subtitle">나라장터 실시간 연동 · 로딩 전</p>
     </div>
-    <button onclick="fetchAll()" id="searchBtn"
-      class="px-6 py-3 bg-blue-600 hover:bg-blue-500 active:scale-95 text-sm font-bold text-white rounded-2xl flex items-center gap-2.5 transition-all shadow-lg shadow-blue-900/40">
-      <i class="fas fa-magnifying-glass text-xs" id="searchIco"></i>
-      <span id="searchTxt">나라장터 검색</span>
-    </button>
+    <div class="flex gap-2 items-center">
+      <div class="flex bg-slate-800 rounded-2xl p-1 mr-2">
+        <button id="tabDash" onclick="switchTab('dash')" class="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-700 text-white">대시보드</button>
+        <button id="tabHist" onclick="switchTab('hist')" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-400">히스토리</button>
+      </div>
+      <button onclick="fetchAll()" id="searchBtn"
+        class="px-5 py-3 bg-blue-600 hover:bg-blue-500 active:scale-95 text-sm font-bold text-white rounded-2xl flex items-center gap-2 transition shadow-lg shadow-blue-900/40">
+        <i class="fas fa-magnifying-glass text-xs" id="searchIco"></i>
+        <span id="searchTxt">검색</span>
+      </button>
+      <button id="adminBtn" onclick="adminAction()" class="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-sm font-semibold text-slate-300 rounded-2xl flex items-center gap-2 transition">
+        <i class="fas fa-user-shield text-xs"></i>
+        <span id="adminBtnTxt">관리자</span>
+      </button>
+    </div>
   </div>
 
   <div id="banner" class="hidden mb-6 p-4 rounded-2xl border text-sm flex items-start gap-3"></div>
 
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-    <div class="mc p-6 rounded-3xl border border-slate-700"><div class="text-sm text-slate-400 mb-1">전체 진행중</div><div class="kn" id="k1">—</div></div>
-    <div class="mc p-6 rounded-3xl border-l-4 border-red-500"><div class="text-sm text-red-400 mb-1">긴급 (D-7이하)</div><div class="kn text-red-400" id="k2">—</div></div>
-    <div class="mc p-6 rounded-3xl border-l-4 border-blue-500"><div class="text-sm text-blue-400 mb-1">Track A (제안)</div><div class="kn text-blue-400" id="k3">—</div></div>
-    <div class="mc p-6 rounded-3xl border-l-4 border-emerald-500"><div class="text-sm text-emerald-400 mb-1">Track B (투찰)</div><div class="kn text-emerald-400" id="k4">—</div></div>
-  </div>
+  <div id="dashView">
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+      <div class="mc p-5 rounded-3xl border border-slate-700"><div class="text-xs text-slate-400 mb-1">전체 진행중</div><div class="kn" id="k1">—</div></div>
+      <div class="mc p-5 rounded-3xl border-l-4 border-red-500"><div class="text-xs text-red-400 mb-1">긴급 (D-7이하)</div><div class="kn text-red-400" id="k2">—</div></div>
+      <div class="mc p-5 rounded-3xl border-l-4 border-purple-500"><div class="text-xs text-purple-400 mb-1">사전규격</div><div class="kn text-purple-400" id="k5">—</div></div>
+      <div class="mc p-5 rounded-3xl border-l-4 border-blue-500"><div class="text-xs text-blue-400 mb-1">Track A (제안)</div><div class="kn text-blue-400" id="k3">—</div></div>
+      <div class="mc p-5 rounded-3xl border-l-4 border-emerald-500"><div class="text-xs text-emerald-400 mb-1">Track B (투찰)</div><div class="kn text-emerald-400" id="k4">—</div></div>
+    </div>
 
-  <div class="mb-8">
-    <p class="text-xs text-slate-500 mb-3 px-1">키워드 필터</p>
-    <div class="flex flex-wrap gap-2" id="kwTags"></div>
-  </div>
-
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <div>
-      <h2 class="text-base font-bold mb-4 flex items-center gap-2 text-blue-400">
-        <span class="w-2 h-2 bg-blue-500 rounded-full"></span>Track A — 제안
-      </h2>
-      <div class="space-y-3" id="trackA">
-        <div class="mc rounded-3xl p-10 border border-slate-700 text-center text-slate-500 text-sm">위 버튼을 눌러 데이터를 불러오세요</div>
+    <div class="mb-6 flex flex-wrap gap-3 items-center">
+      <div class="flex-1 min-w-[200px]">
+        <p class="text-xs text-slate-500 mb-2 px-1">키워드 필터</p>
+        <div class="flex flex-wrap gap-2" id="kwTags"></div>
+      </div>
+      <div>
+        <p class="text-xs text-slate-500 mb-2 px-1">정렬</p>
+        <select id="sortBy" onchange="renderCards()" class="px-4 py-2 bg-slate-800 border border-slate-700 rounded-2xl text-sm text-white focus:outline-none">
+          <option value="deadline">마감일 가까운 순</option>
+          <option value="eligible">참가가능 우선</option>
+          <option value="budget">예산 큰 순</option>
+          <option value="latest">최신 공고 순</option>
+        </select>
+      </div>
+      <div>
+        <p class="text-xs text-slate-500 mb-2 px-1">필터</p>
+        <label class="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 rounded-2xl text-sm text-white cursor-pointer">
+          <input type="checkbox" id="onlyEligible" onchange="renderCards()" class="accent-blue-500">
+          참가가능만
+        </label>
       </div>
     </div>
-    <div>
-      <h2 class="text-base font-bold mb-4 flex items-center gap-2 text-emerald-400">
-        <span class="w-2 h-2 bg-emerald-500 rounded-full"></span>Track B — 투찰
-      </h2>
-      <div class="space-y-3" id="trackB">
-        <div class="mc rounded-3xl p-10 border border-slate-700 text-center text-slate-500 text-sm">위 버튼을 눌러 데이터를 불러오세요</div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div>
+        <h2 class="text-base font-bold mb-4 flex items-center gap-2 text-purple-400">
+          <span class="w-2 h-2 bg-purple-500 rounded-full"></span>사전규격
+        </h2>
+        <div class="space-y-3" id="preSpec">
+          <div class="mc rounded-3xl p-8 border border-slate-700 text-center text-slate-500 text-sm">검색을 눌러주세요</div>
+        </div>
+      </div>
+      <div>
+        <h2 class="text-base font-bold mb-4 flex items-center gap-2 text-blue-400">
+          <span class="w-2 h-2 bg-blue-500 rounded-full"></span>Track A — 제안
+        </h2>
+        <div class="space-y-3" id="trackA">
+          <div class="mc rounded-3xl p-8 border border-slate-700 text-center text-slate-500 text-sm">검색을 눌러주세요</div>
+        </div>
+      </div>
+      <div>
+        <h2 class="text-base font-bold mb-4 flex items-center gap-2 text-emerald-400">
+          <span class="w-2 h-2 bg-emerald-500 rounded-full"></span>Track B — 투찰
+        </h2>
+        <div class="space-y-3" id="trackB">
+          <div class="mc rounded-3xl p-8 border border-slate-700 text-center text-slate-500 text-sm">검색을 눌러주세요</div>
+        </div>
       </div>
     </div>
   </div>
 
-</div>
+  <div id="histView" class="hidden">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div class="mc p-5 rounded-3xl border border-slate-700"><div class="text-xs text-slate-400 mb-1">전체 참여</div><div class="kn" id="h1">—</div></div>
+      <div class="mc p-5 rounded-3xl border-l-4 border-emerald-500"><div class="text-xs text-emerald-400 mb-1">당선</div><div class="kn text-emerald-400" id="h2">—</div></div>
+      <div class="mc p-5 rounded-3xl border-l-4 border-red-500"><div class="text-xs text-red-400 mb-1">낙선</div><div class="kn text-red-400" id="h3">—</div></div>
+      <div class="mc p-5 rounded-3xl border-l-4 border-yellow-500"><div class="text-xs text-yellow-400 mb-1">대기 중</div><div class="kn text-yellow-400" id="h4">—</div></div>
+    </div>
 
-<div class="fixed bottom-8 right-8 z-50">
-  <button id="ci" onclick="toggleCal()" 
-    class="bg-blue-600 hover:bg-blue-500 text-white rounded-2xl shadow-xl shadow-blue-900/40 p-4 flex flex-col items-center justify-center w-20 h-20 transition-all hover:scale-105">
-    <div class="text-[10px] uppercase tracking-wider font-bold opacity-80" id="cy">2026</div>
-    <div class="text-2xl font-extrabold" id="cm">05</div>
-  </button>
-  
-  <div id="cp" class="hidden absolute bottom-0 right-0 bg-slate-900 rounded-3xl shadow-2xl border border-slate-700 p-6 w-80">
-    <div class="flex justify-between items-center mb-4">
-      <button onclick="prevM()" class="w-8 h-8 text-2xl text-slate-400 hover:text-white flex items-center justify-center"><</button>
-      <span class="font-semibold" id="calTitle"></span>
-      <button onclick="nextM()" class="w-8 h-8 text-2xl text-slate-400 hover:text-white flex items-center justify-center">></button>
+    <div class="mb-6 flex flex-wrap gap-3 items-center">
+      <input id="histSearch" placeholder="검색 (공고명, 발주처...)" oninput="renderHistory()"
+        class="flex-1 min-w-[200px] px-4 py-2 bg-slate-800 border border-slate-700 rounded-2xl text-sm text-white focus:outline-none focus:border-blue-500">
+      <select id="histFilter" onchange="renderHistory()" class="px-4 py-2 bg-slate-800 border border-slate-700 rounded-2xl text-sm text-white focus:outline-none">
+        <option value="">전체 결과</option>
+        <option value="won">당선</option>
+        <option value="lost">낙선</option>
+        <option value="pending">대기 중</option>
+      </select>
     </div>
-    <div id="calGrid" class="grid grid-cols-7 gap-1 text-center text-sm"></div>
-    <div class="mt-4 pt-4 border-t border-slate-700">
-      <div class="text-sm font-semibold mb-2 text-slate-300" id="calDate">날짜를 선택하세요</div>
-      <div id="calBids" class="space-y-2 text-sm max-h-44 overflow-auto"></div>
-    </div>
-    <div class="mt-3 text-center"><button onclick="toggleCal()" class="text-xs text-slate-400 hover:text-white">닫기</button></div>
+
+    <div id="histList" class="space-y-3"></div>
   </div>
+
 </div>
 
 <script>
-const API_ENDPOINT = "https://narajangter-api-test.vercel.app/api/test";
+const API_BASE = "https://narajangter-api-test.vercel.app/api";
 
-let DATA = [], selectedKw = [];
-let calY = new Date().getFullYear(), calM = new Date().getMonth()+1, calOpen = false;
+let DATA = [], HISTORY = [], selectedKw = [];
 let loading = false;
+let isAdmin = false;
+let currentTab = 'dash';
+let token = localStorage.getItem('some_token') || '';
+
+async function verifyAuth() {
+  if (!token) { setAdmin(false); return; }
+  try {
+    const r = await fetch(`${API_BASE}/auth?action=verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token })
+    });
+    const d = await r.json();
+    setAdmin(d.isAdmin === true);
+  } catch (e) {
+    setAdmin(false);
+  }
+}
+
+function setAdmin(on) {
+  isAdmin = on;
+  document.getElementById('adminBtnTxt').textContent = on ? '관리자 메뉴' : '관리자';
+  if (currentTab === 'dash') renderCards();
+  if (currentTab === 'hist') renderHistory();
+}
+
+function adminAction() {
+  if (!isAdmin) {
+    document.getElementById('loginModal').classList.remove('hidden');
+    setTimeout(() => document.getElementById('loginPw').focus(), 100);
+  } else {
+    if (confirm('관리자 메뉴:\n[확인] 비밀번호 변경\n[취소] 로그아웃')) {
+      document.getElementById('pwModal').classList.remove('hidden');
+    } else {
+      doLogout();
+    }
+  }
+}
+
+async function doLogin() {
+  const pw = document.getElementById('loginPw').value;
+  const err = document.getElementById('loginErr');
+  err.classList.add('hidden');
+  
+  try {
+    const r = await fetch(`${API_BASE}/auth?action=login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pw })
+    });
+    const d = await r.json();
+    
+    if (d.success) {
+      token = d.token;
+      localStorage.setItem('some_token', token);
+      setAdmin(true);
+      closeLogin();
+      showBanner('ok', '✅ 관리자로 로그인되었습니다.');
+    } else {
+      err.textContent = d.error || '로그인 실패';
+      err.classList.remove('hidden');
+    }
+  } catch (e) {
+    err.textContent = '서버 오류: ' + e.message;
+    err.classList.remove('hidden');
+  }
+}
+
+async function doLogout() {
+  try {
+    await fetch(`${API_BASE}/auth?action=logout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token })
+    });
+  } catch {}
+  token = '';
+  localStorage.removeItem('some_token');
+  setAdmin(false);
+  showBanner('ok', '로그아웃되었습니다.');
+}
+
+function closeLogin() {
+  document.getElementById('loginModal').classList.add('hidden');
+  document.getElementById('loginPw').value = '';
+  document.getElementById('loginErr').classList.add('hidden');
+}
+
+async function doChangePw() {
+  const oldPw = document.getElementById('oldPw').value;
+  const newPw = document.getElementById('newPw').value;
+  const err = document.getElementById('pwErr');
+  const ok = document.getElementById('pwOk');
+  err.classList.add('hidden');
+  ok.classList.add('hidden');
+  
+  try {
+    const r = await fetch(`${API_BASE}/auth?action=change-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, oldPassword: oldPw, newPassword: newPw })
+    });
+    const d = await r.json();
+    
+    if (d.success) {
+      ok.textContent = '✅ ' + d.message;
+      ok.classList.remove('hidden');
+      document.getElementById('oldPw').value = '';
+      document.getElementById('newPw').value = '';
+      setTimeout(closePwModal, 1500);
+    } else {
+      err.textContent = d.error;
+      err.classList.remove('hidden');
+    }
+  } catch (e) {
+    err.textContent = '오류: ' + e.message;
+    err.classList.remove('hidden');
+  }
+}
+
+function closePwModal() {
+  document.getElementById('pwModal').classList.add('hidden');
+  document.getElementById('pwErr').classList.add('hidden');
+  document.getElementById('pwOk').classList.add('hidden');
+}
 
 async function fetchAll() {
   if (loading) return;
@@ -104,13 +332,11 @@ async function fetchAll() {
   hideBanner();
 
   try {
-    const r = await fetch(API_ENDPOINT);
+    const r = await fetch(`${API_BASE}/data`);
     if (!r.ok) throw new Error('서버 응답 오류 (' + r.status + ')');
     const data = await r.json();
     
-    if (!data.success || !data.items) {
-      throw new Error('데이터를 불러올 수 없습니다');
-    }
+    if (!data.success || !data.items) throw new Error('데이터를 불러올 수 없습니다');
     
     const seen = new Set();
     const results = [];
@@ -118,23 +344,26 @@ async function fetchAll() {
     for (const item of data.items) {
       const kw = (item.matchedKeywords && item.matchedKeywords[0]) || '기타';
       const b = parseBid(item, kw);
-      if (!b.title || seen.has(b.id)) continue;
-      seen.add(b.id);
+      if (!b.title) continue;
+      const dupKey = `${b.title}-${b.client}`;
+      if (seen.has(dupKey)) continue;
+      seen.add(dupKey);
       results.push(b);
     }
+    
+    DATA = results;
+    await fetchHistory();
     
     if (results.length === 0) {
       showBanner('warn', '⚠️ 키워드에 해당하는 공고가 없습니다.');
     } else {
-      DATA = results.sort((a,b) => a.dday - b.dday);
       updateKPI();
       renderKwTags();
       renderCards();
-      buildCal();
       const now = new Date();
       document.getElementById('subtitle').textContent =
         `나라장터 실시간 연동 · ${now.getMonth()+1}월 ${now.getDate()}일 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} 업데이트`;
-      showBanner('ok', `✅ 총 ${DATA.length}건의 공고를 불러왔습니다.`);
+      showBanner('ok', `✅ 총 ${DATA.filter(b=>b.dday>=0).length}건의 진행중 공고를 불러왔습니다. (사전규격 ${data.preSpecCount || 0}건 포함)`);
     }
   } catch (e) {
     console.error(e);
@@ -146,11 +375,9 @@ async function fetchAll() {
 }
 
 function parseBid(item, kw) {
-  const dlRaw = (item.bidClseDt || item.bidCloseDateTime || item.opengDt || item.opengDateTime || (item.bidNtceDt||'')+" 18:00").slice(0,16);
-  let dday = 99, dl = dlRaw;
+  const dlRaw = (item.bidClseDt || item.opengDt || item.rcptDocClseDt || (item.bidNtceDt||'')+" 18:00").slice(0,16);
+  let dday = 99;
   try { dday = Math.ceil((new Date(dlRaw) - new Date()) / 86400000); } catch {}
-
-  const track = item.track || 'B';
 
   const fmtAmt = v => {
     try {
@@ -162,26 +389,30 @@ function parseBid(item, kw) {
     } catch { return v||'미정'; }
   };
 
-  const bidNo = item.bidNtceNo || "";
+  const rawBudget = parseInt(String(item.presmptPrce || item.bdgtAmt || '0').replace(/,/g,'')) || 0;
+  const bidNo = item.bidNtceNo || item.rcptDocPblancNo || '';
   const url = item.bidNtceUrl || item.linkUrl || (bidNo ? `https://www.g2b.go.kr:8101/ep/tbid/tbBidList.do?bidno=${bidNo}` : "https://www.g2b.go.kr");
 
   return {
-    id: `${item.bidNtceNo||''}-${item.bidNtceOrd||'000'}`,
-    title: item.bidNtceNm || '',
+    id: `${item.bidNtceNo||item.rcptDocPblancNo||''}-${item.bidNtceOrd||'000'}-${item.isPreSpec?'P':'B'}`,
+    title: item.bidNtceNm || item.rcptDocPblancNm || '',
     client: item.dminsttNm || item.ntceInsttNm || '',
-    deadline: dl,
+    deadline: dlRaw,
+    notice: (item.bidNtceDt || '').slice(0,10),
     dday,
-    value: fmtAmt(item.presmptPrce || item.bdgtAmt),
-    track,
-    url,
-    kw,
-    participating: false
+    budget: fmtAmt(item.presmptPrce || item.bdgtAmt),
+    rawBudget,
+    track: item.track || 'B',
+    industryStatus: item.industryStatus || 'unknown',
+    industryName: item.industryName || '',
+    url, kw,
+    keywords: item.matchedKeywords || [kw]
   };
 }
 
 function setLoading(on) {
   document.getElementById('searchIco').className = on ? 'fas fa-circle-notch text-xs spin' : 'fas fa-magnifying-glass text-xs';
-  document.getElementById('searchTxt').textContent = on ? '검색 중...' : '나라장터 검색';
+  document.getElementById('searchTxt').textContent = on ? '검색 중...' : '검색';
   document.getElementById('searchBtn').disabled = on;
 }
 
@@ -194,21 +425,23 @@ function showBanner(type, msg) {
   b.className = `mb-6 p-4 rounded-2xl border text-sm flex items-start gap-3 ${cfg}`;
   b.textContent = msg;
   b.classList.remove('hidden');
+  setTimeout(hideBanner, 5000);
 }
 function hideBanner() { document.getElementById('banner').classList.add('hidden'); }
 
 function updateKPI() {
   const live = DATA.filter(b => b.dday >= 0);
   document.getElementById('k1').textContent = live.length;
-  document.getElementById('k2').textContent = live.filter(b=>b.dday<=7).length;
+  document.getElementById('k2').textContent = live.filter(b=>b.dday<=7 && b.track !== 'P').length;
   document.getElementById('k3').textContent = live.filter(b=>b.track==='A').length;
   document.getElementById('k4').textContent = live.filter(b=>b.track==='B').length;
+  document.getElementById('k5').textContent = live.filter(b=>b.track==='P').length;
 }
 
 function renderKwTags() {
-  const kws = [...new Set(DATA.map(b=>b.kw))].sort();
+  const kws = [...new Set(DATA.flatMap(b => b.keywords || [b.kw]))].sort();
   document.getElementById('kwTags').innerHTML = kws.map(k =>
-    `<span onclick="toggleKw('${k}',this)" class="px-3 py-1 text-xs bg-slate-800 border border-slate-700 rounded-2xl cursor-pointer hover:bg-slate-700 text-slate-300 transition-all">${k}</span>`
+    `<span onclick="toggleKw('${k}',this)" class="px-3 py-1 text-xs bg-slate-800 border border-slate-700 rounded-2xl cursor-pointer hover:bg-slate-700 text-slate-300 transition">${k}</span>`
   ).join('');
 }
 
@@ -219,109 +452,313 @@ function toggleKw(kw, el) {
 }
 
 function renderCards() {
-  const live = DATA.filter(b => b.dday >= 0);
-  const show = selectedKw.length ? live.filter(b=>selectedKw.includes(b.kw)) : live;
-  const empty = `<div class="mc rounded-3xl p-10 border border-slate-700 text-center text-slate-500 text-sm">공고 없음</div>`;
+  let live = DATA.filter(b => b.dday >= 0);
+  
+  if (selectedKw.length) {
+    live = live.filter(b => (b.keywords || [b.kw]).some(k => selectedKw.includes(k)));
+  }
+  
+  if (document.getElementById('onlyEligible')?.checked) {
+    live = live.filter(b => b.industryStatus === 'match' || b.industryStatus === 'no_limit');
+  }
+  
+  const sortBy = document.getElementById('sortBy')?.value || 'deadline';
+  live.sort((a, b) => {
+    if (sortBy === 'deadline') return a.dday - b.dday;
+    if (sortBy === 'budget') return b.rawBudget - a.rawBudget;
+    if (sortBy === 'latest') return (b.notice || '').localeCompare(a.notice || '');
+    if (sortBy === 'eligible') {
+      const score = x => x.industryStatus === 'match' ? 0 : x.industryStatus === 'no_limit' ? 1 : x.industryStatus === 'unknown' ? 2 : 3;
+      return score(a) - score(b);
+    }
+    return 0;
+  });
+  
+  const empty = `<div class="mc rounded-3xl p-8 border border-slate-700 text-center text-slate-500 text-sm">공고 없음</div>`;
   const mk = arr => arr.length ? arr.map(cardHtml).join('') : empty;
-  document.getElementById('trackA').innerHTML = mk(show.filter(b=>b.track==='A'));
-  document.getElementById('trackB').innerHTML = mk(show.filter(b=>b.track==='B'));
+  
+  document.getElementById('preSpec').innerHTML = mk(live.filter(b=>b.track==='P'));
+  document.getElementById('trackA').innerHTML = mk(live.filter(b=>b.track==='A'));
+  document.getElementById('trackB').innerHTML = mk(live.filter(b=>b.track==='B'));
 }
 
 function cardHtml(b) {
-  const col = b.track==='A' ? 'blue' : 'emerald';
+  const colMap = {A: 'blue', B: 'emerald', P: 'purple'};
+  const col = colMap[b.track] || 'slate';
+  const trackName = {A: 'A', B: 'B', P: '사전'}[b.track];
   const dc = b.dday<=7 ? 'text-red-400' : b.dday<=14 ? 'text-yellow-400' : 'text-slate-500';
+  
+  let indBadge = '';
+  if (b.industryStatus === 'match') {
+    indBadge = '<span class="text-xs px-2 py-1 bg-emerald-900 text-emerald-400 rounded-xl font-bold">✓ 참가가능</span>';
+  } else if (b.industryStatus === 'mismatch') {
+    indBadge = `<span class="text-xs px-2 py-1 bg-red-900/60 text-red-400 rounded-xl">⚠ 업종 불일치${b.industryName?': '+b.industryName.slice(0,15):''}</span>`;
+  } else if (b.industryStatus === 'no_limit') {
+    indBadge = '<span class="text-xs px-2 py-1 bg-slate-700 text-slate-300 rounded-xl">제한 없음</span>';
+  }
+  
+  const isInHistory = HISTORY.some(h => h.bidNtceNo && h.bidNtceNo === b.id.split('-')[0]);
+  
+  const adminControls = isAdmin ? `
+    <button onclick="openHistModal('${b.id}')" class="px-3 py-1.5 text-xs bg-${isInHistory?'emerald':'blue'}-900 hover:bg-${isInHistory?'emerald':'blue'}-700 text-${isInHistory?'emerald':'blue'}-300 rounded-xl font-semibold transition">
+      <i class="fas fa-${isInHistory?'check':'plus'} mr-1"></i>${isInHistory?'참여완료':'참여'}
+    </button>` : '';
+  
   return `<div class="mc rounded-3xl p-5 border border-slate-700">
-    <div class="flex justify-between items-start mb-4">
+    <div class="flex justify-between items-start mb-3">
       <div class="flex flex-wrap gap-1.5">
-        <span class="text-xs px-3 py-1 bg-${col}-900 text-${col}-400 rounded-2xl font-medium">Track ${b.track}</span>
+        <span class="text-xs px-3 py-1 bg-${col}-900 text-${col}-400 rounded-2xl font-medium">${trackName}</span>
         <span class="text-xs px-2 py-1 bg-slate-700 text-slate-400 rounded-xl">${b.kw}</span>
-        ${b.dday<=7?'<span class="text-xs px-2 py-1 bg-red-900 text-red-400 rounded-xl font-bold">⚡긴급</span>':''}
+        ${b.dday<=7 && b.track !== 'P'?'<span class="text-xs px-2 py-1 bg-red-900 text-red-400 rounded-xl font-bold">⚡긴급</span>':''}
       </div>
-      <span class="${dc} text-3xl font-bold shrink-0 ml-2">D-${b.dday}</span>
+      <span class="${dc} text-2xl font-bold shrink-0 ml-2">D-${b.dday}</span>
     </div>
-    <div class="mb-4">
-      <p class="font-semibold text-base leading-snug text-white lc2">${b.title}</p>
-      <p class="text-sm text-slate-400 mt-1">${b.client}</p>
+    <div class="mb-3">
+      <p class="font-semibold text-sm leading-snug text-white lc2">${b.title}</p>
+      <p class="text-xs text-slate-400 mt-1">${b.client}</p>
     </div>
-    <div class="flex items-center justify-between text-sm mb-4">
-      <div><span class="text-xs text-slate-500">예상</span><span class="font-bold ml-1 text-white">${b.value}</span></div>
-      <div class="flex items-center gap-2" onclick="event.stopPropagation()">
-        <input type="checkbox" ${b.participating?'checked':''} onchange="togglePart('${b.id}',this.checked)" class="accent-red-500 w-4 h-4">
-        <span class="text-xs text-slate-400">참여</span>
-      </div>
+    <div class="flex items-center justify-between text-sm mb-3">
+      <div><span class="text-xs text-slate-500">예상</span><span class="font-bold ml-1 text-white text-sm">${b.budget}</span></div>
     </div>
-    <a href="${b.url}" target="_blank" 
-      class="block w-full py-2.5 bg-slate-700/50 hover:bg-blue-600 rounded-2xl text-xs font-semibold text-center text-slate-300 hover:text-white transition-all flex items-center justify-center gap-1.5">
-      <i class="fas fa-external-link-alt"></i>나라장터 공고 보기
-    </a>
+    <div class="mb-3">${indBadge}</div>
+    <div class="flex gap-2">
+      <a href="${b.url}" target="_blank" 
+        class="flex-1 py-2 bg-slate-700/50 hover:bg-blue-600 rounded-xl text-xs font-semibold text-center text-slate-300 hover:text-white transition flex items-center justify-center gap-1.5">
+        <i class="fas fa-external-link-alt"></i>공고 보기
+      </a>
+      ${adminControls}
+    </div>
     <div class="mt-2 text-xs text-slate-600"><i class="fas fa-clock mr-1"></i>${b.deadline}</div>
   </div>`;
 }
 
-function togglePart(id, v) {
-  const b = DATA.find(x=>x.id===id);
-  if (b) { b.participating = v; buildCal(); }
-}
-
-function toggleCal() {
-  calOpen = !calOpen;
-  document.getElementById('ci').style.opacity = calOpen ? '0' : '1';
-  document.getElementById('ci').style.pointerEvents = calOpen ? 'none' : 'auto';
-  document.getElementById('cp').classList.toggle('hidden', !calOpen);
-  if (calOpen) buildCal();
-}
-
-function buildCal() {
-  document.getElementById('calTitle').textContent = `${calY}년 ${calM}월`;
-  document.getElementById('cy').textContent = calY;
-  document.getElementById('cm').textContent = String(calM).padStart(2,'0');
-  const g = document.getElementById('calGrid');
-  g.innerHTML = '';
-  ['일','월','화','수','목','금','토'].forEach(d => {
-    const e = document.createElement('div');
-    e.className = 'h-7 flex items-center justify-center text-xs text-slate-500 font-medium';
-    e.textContent = d; g.appendChild(e);
-  });
-  const first = new Date(calY, calM-1, 1).getDay();
-  const days = new Date(calY, calM, 0).getDate();
-  const today = new Date();
-  for (let i=0; i<first; i++) { const e=document.createElement('div'); e.className='h-8'; g.appendChild(e); }
-  for (let day=1; day<=days; day++) {
-    const hb = DATA.some(b => {
-      const d = new Date(b.deadline);
-      return b.participating && d.getFullYear()===calY && d.getMonth()+1===calM && d.getDate()===day;
-    });
-    const it = calY===today.getFullYear() && calM===today.getMonth()+1 && day===today.getDate();
-    const e = document.createElement('div');
-    e.className = `h-8 flex items-center justify-center text-sm cursor-pointer rounded-xl transition-all ${it?'bg-blue-900 text-blue-300 font-bold':''} ${hb?'ring-2 ring-red-500/60 text-red-400 font-semibold':'text-slate-300 hover:bg-slate-800'}`;
-    e.textContent = day;
-    e.onclick = () => showDay(day);
-    g.appendChild(e);
+function switchTab(t) {
+  currentTab = t;
+  const dash = document.getElementById('dashView');
+  const hist = document.getElementById('histView');
+  const tDash = document.getElementById('tabDash');
+  const tHist = document.getElementById('tabHist');
+  
+  if (t === 'dash') {
+    dash.classList.remove('hidden');
+    hist.classList.add('hidden');
+    tDash.className = 'px-4 py-2 rounded-xl text-sm font-semibold bg-slate-700 text-white';
+    tHist.className = 'px-4 py-2 rounded-xl text-sm font-semibold text-slate-400';
+  } else {
+    dash.classList.add('hidden');
+    hist.classList.remove('hidden');
+    tHist.className = 'px-4 py-2 rounded-xl text-sm font-semibold bg-slate-700 text-white';
+    tDash.className = 'px-4 py-2 rounded-xl text-sm font-semibold text-slate-400';
+    renderHistory();
   }
 }
 
-function prevM() { calM--; if(calM<1){calM=12;calY--;} buildCal(); }
-function nextM() { calM++; if(calM>12){calM=1;calY++;}buildCal(); }
-
-function showDay(day) {
-  document.getElementById('calDate').textContent = `${calM}월 ${day}일 마감 공고`;
-  const f = DATA.filter(b => {
-    const d = new Date(b.deadline);
-    return b.participating && d.getFullYear()===calY && d.getMonth()+1===calM && d.getDate()===day;
-  });
-  document.getElementById('calBids').innerHTML = f.length === 0
-    ? `<p class="text-slate-500 py-4 text-center text-sm">마감 공고 없음</p>`
-    : f.map(b => `<a href="${b.url}" target="_blank"
-      class="flex justify-between items-center p-3 bg-slate-800 hover:bg-slate-700 rounded-2xl cursor-pointer gap-2">
-      <div class="min-w-0 flex-1">
-        <div class="font-medium text-sm truncate">${b.title}</div>
-        <div class="text-xs text-slate-400">${b.client}</div>
-      </div>
-      <span class="font-extrabold text-red-400 shrink-0">D-${b.dday}</span>
-    </a>`).join('');
+async function fetchHistory() {
+  try {
+    const r = await fetch(`${API_BASE}/history`);
+    const d = await r.json();
+    if (d.success) HISTORY = d.items || [];
+  } catch (e) {
+    console.error('히스토리 로드 실패:', e);
+  }
 }
 
-window.onload = () => { buildCal(); fetchAll(); };
+function openHistModal(bidId) {
+  if (!isAdmin) { showBanner('warn', '관리자만 사용 가능합니다.'); return; }
+  
+  const b = DATA.find(x => x.id === bidId);
+  if (!b) return;
+  
+  const existing = HISTORY.find(h => h.bidNtceNo === b.id.split('-')[0]);
+  
+  document.getElementById('histId').value = existing?.id || '';
+  document.getElementById('histTitle').value = b.title;
+  document.getElementById('histResult').value = existing?.result || 'pending';
+  document.getElementById('histMemo').value = existing?.memo || '';
+  document.getElementById('histAttachUrl').value = existing?.attachmentUrl || '';
+  document.getElementById('histAttachName').value = existing?.attachmentName || '';
+  document.getElementById('histModalTitle').textContent = existing ? '참여 정보 수정' : '참여 정보 입력';
+  
+  window._currentBid = b;
+  window._existingHist = existing;
+  
+  document.getElementById('histModal').classList.remove('hidden');
+}
+
+async function saveHistory() {
+  const b = window._currentBid;
+  const existing = window._existingHist;
+  
+  const data = {
+    bidNtceNo: b.id.split('-')[0],
+    title: b.title,
+    client: b.client,
+    budget: b.budget,
+    deadline: b.deadline,
+    track: b.track,
+    keyword: b.kw,
+    url: b.url,
+    result: document.getElementById('histResult').value,
+    memo: document.getElementById('histMemo').value,
+    attachmentUrl: document.getElementById('histAttachUrl').value,
+    attachmentName: document.getElementById('histAttachName').value,
+    participatedAt: existing?.participatedAt || new Date().toISOString()
+  };
+  
+  try {
+    if (existing) {
+      await fetch(`${API_BASE}/history`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, id: existing.id, updates: data })
+      });
+    } else {
+      await fetch(`${API_BASE}/history`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, item: data })
+      });
+    }
+    
+    await fetchHistory();
+    closeHistModal();
+    renderCards();
+    if (currentTab === 'hist') renderHistory();
+    showBanner('ok', '✅ 저장되었습니다.');
+  } catch (e) {
+    showBanner('warn', '저장 실패: ' + e.message);
+  }
+}
+
+function closeHistModal() {
+  document.getElementById('histModal').classList.add('hidden');
+}
+
+async function deleteHistory(id) {
+  if (!isAdmin) return;
+  if (!confirm('정말 삭제하시겠습니까?')) return;
+  
+  try {
+    await fetch(`${API_BASE}/history`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, id })
+    });
+    await fetchHistory();
+    renderHistory();
+    renderCards();
+    showBanner('ok', '삭제되었습니다.');
+  } catch (e) {
+    showBanner('warn', '삭제 실패: ' + e.message);
+  }
+}
+
+function renderHistory() {
+  if (HISTORY.length === 0) {
+    fetchHistory().then(() => _renderHistList());
+  } else {
+    _renderHistList();
+  }
+}
+
+function _renderHistList() {
+  document.getElementById('h1').textContent = HISTORY.length;
+  document.getElementById('h2').textContent = HISTORY.filter(h => h.result === 'won').length;
+  document.getElementById('h3').textContent = HISTORY.filter(h => h.result === 'lost').length;
+  document.getElementById('h4').textContent = HISTORY.filter(h => h.result === 'pending').length;
+  
+  const search = document.getElementById('histSearch').value.toLowerCase();
+  const filter = document.getElementById('histFilter').value;
+  
+  let list = HISTORY;
+  if (search) list = list.filter(h => 
+    (h.title || '').toLowerCase().includes(search) || 
+    (h.client || '').toLowerCase().includes(search) ||
+    (h.memo || '').toLowerCase().includes(search)
+  );
+  if (filter) list = list.filter(h => h.result === filter);
+  
+  const resultMap = {
+    won: ['🏆 당선', 'bg-emerald-900 text-emerald-400'],
+    lost: ['❌ 낙선', 'bg-red-900 text-red-400'],
+    pending: ['⏳ 대기 중', 'bg-yellow-900 text-yellow-400']
+  };
+  
+  const html = list.length === 0 
+    ? `<div class="mc rounded-3xl p-10 border border-slate-700 text-center text-slate-500 text-sm">참여 이력이 없습니다</div>`
+    : list.map(h => {
+        const [resTxt, resCls] = resultMap[h.result] || resultMap.pending;
+        const trackName = {A: 'Track A', B: 'Track B', P: '사전규격'}[h.track] || h.track;
+        const dt = h.participatedAt ? new Date(h.participatedAt).toLocaleDateString('ko-KR') : '';
+        return `<div class="mc rounded-3xl p-5 border border-slate-700">
+          <div class="flex justify-between items-start mb-3 flex-wrap gap-2">
+            <div class="flex flex-wrap gap-1.5">
+              <span class="text-xs px-3 py-1 ${resCls} rounded-2xl font-bold">${resTxt}</span>
+              <span class="text-xs px-2 py-1 bg-slate-700 text-slate-300 rounded-xl">${trackName}</span>
+              <span class="text-xs px-2 py-1 bg-slate-700 text-slate-400 rounded-xl">${h.keyword}</span>
+            </div>
+            <span class="text-xs text-slate-500">참여일: ${dt}</span>
+          </div>
+          <div class="mb-3">
+            <p class="font-semibold text-base text-white">${h.title}</p>
+            <p class="text-sm text-slate-400 mt-1">${h.client} · 예산 ${h.budget}</p>
+          </div>
+          ${h.memo ? `<div class="mb-3 p-3 bg-slate-800 rounded-xl text-sm text-slate-300 whitespace-pre-wrap">${h.memo}</div>` : ''}
+          ${h.attachmentUrl ? `<div class="mb-3">
+            <a href="${h.attachmentUrl}" target="_blank" class="text-xs text-blue-400 hover:underline">
+              <i class="fas fa-paperclip mr-1"></i>${h.attachmentName || '첨부파일'}
+            </a>
+          </div>` : ''}
+          <div class="flex gap-2">
+            <a href="${h.url}" target="_blank" class="flex-1 py-2 bg-slate-700/50 hover:bg-blue-600 rounded-xl text-xs font-semibold text-center text-slate-300 hover:text-white transition">
+              <i class="fas fa-external-link-alt mr-1"></i>공고 보기
+            </a>
+            ${isAdmin ? `
+              <button onclick="editHistory('${h.id}')" class="px-4 py-2 bg-blue-900 hover:bg-blue-700 text-blue-300 rounded-xl text-xs font-semibold">
+                <i class="fas fa-edit mr-1"></i>수정
+              </button>
+              <button onclick="deleteHistory('${h.id}')" class="px-4 py-2 bg-red-900/60 hover:bg-red-700 text-red-300 rounded-xl text-xs font-semibold">
+                <i class="fas fa-trash mr-1"></i>삭제
+              </button>
+            ` : ''}
+          </div>
+        </div>`;
+      }).join('');
+  
+  document.getElementById('histList').innerHTML = html;
+}
+
+function editHistory(id) {
+  const h = HISTORY.find(x => x.id === id);
+  if (!h) return;
+  
+  document.getElementById('histId').value = h.id;
+  document.getElementById('histTitle').value = h.title;
+  document.getElementById('histResult').value = h.result;
+  document.getElementById('histMemo').value = h.memo || '';
+  document.getElementById('histAttachUrl').value = h.attachmentUrl || '';
+  document.getElementById('histAttachName').value = h.attachmentName || '';
+  document.getElementById('histModalTitle').textContent = '참여 정보 수정';
+  
+  window._currentBid = {
+    id: h.bidNtceNo + '-000-B',
+    title: h.title,
+    client: h.client,
+    budget: h.budget,
+    deadline: h.deadline,
+    track: h.track,
+    kw: h.keyword,
+    url: h.url
+  };
+  window._existingHist = h;
+  
+  document.getElementById('histModal').classList.remove('hidden');
+}
+
+window.onload = async () => { 
+  await verifyAuth();
+  fetchAll(); 
+};
 </script>
 </body>
 </html>
