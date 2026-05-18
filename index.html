@@ -79,6 +79,9 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
     </div>
     <div class="flex gap-2 mt-6">
       <button onclick="saveHistory()" class="flex-1 py-3 bg-blue-600 hover:bg-blue-500 rounded-2xl text-white font-bold transition">저장</button>
+      <button id="histDelBtn" onclick="removeFromHistory()" class="px-4 py-3 bg-red-900/60 hover:bg-red-700 text-red-300 rounded-2xl transition hidden">
+        <i class="fas fa-trash"></i>
+      </button>
       <button onclick="closeHistModal()" class="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-2xl text-white transition">취소</button>
     </div>
   </div>
@@ -194,6 +197,28 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
 
 </div>
 
+<div class="fixed bottom-8 right-8 z-50">
+  <button id="calIcon" onclick="toggleCal()" 
+    class="bg-blue-600 hover:bg-blue-500 text-white rounded-2xl shadow-xl shadow-blue-900/40 p-4 flex flex-col items-center justify-center w-20 h-20 transition-all hover:scale-105">
+    <div class="text-[10px] uppercase tracking-wider font-bold opacity-80" id="cy">2026</div>
+    <div class="text-2xl font-extrabold" id="cm">05</div>
+  </button>
+  
+  <div id="calPanel" class="hidden absolute bottom-0 right-0 bg-slate-900 rounded-3xl shadow-2xl border border-slate-700 p-6 w-80">
+    <div class="flex justify-between items-center mb-4">
+      <button onclick="prevM()" class="w-8 h-8 text-2xl text-slate-400 hover:text-white flex items-center justify-center">&lt;</button>
+      <span class="font-semibold" id="calTitle"></span>
+      <button onclick="nextM()" class="w-8 h-8 text-2xl text-slate-400 hover:text-white flex items-center justify-center">&gt;</button>
+    </div>
+    <div id="calGrid" class="grid grid-cols-7 gap-1 text-center text-sm"></div>
+    <div class="mt-4 pt-4 border-t border-slate-700">
+      <div class="text-sm font-semibold mb-2 text-slate-300" id="calDate">날짜를 선택하세요</div>
+      <div id="calBids" class="space-y-2 text-sm max-h-44 overflow-auto"></div>
+    </div>
+    <div class="mt-3 text-center"><button onclick="toggleCal()" class="text-xs text-slate-400 hover:text-white">닫기</button></div>
+  </div>
+</div>
+
 <script>
 const API_BASE = "https://narajangter-api-test.vercel.app/api";
 
@@ -202,6 +227,7 @@ let loading = false;
 let isAdmin = false;
 let currentTab = 'dash';
 let token = localStorage.getItem('some_token') || '';
+let calY = new Date().getFullYear(), calM = new Date().getMonth()+1, calOpen = false;
 
 async function verifyAuth() {
   if (!token) { setAdmin(false); return; }
@@ -213,9 +239,7 @@ async function verifyAuth() {
     });
     const d = await r.json();
     setAdmin(d.isAdmin === true);
-  } catch (e) {
-    setAdmin(false);
-  }
+  } catch (e) { setAdmin(false); }
 }
 
 function setAdmin(on) {
@@ -232,9 +256,7 @@ function adminAction() {
   } else {
     if (confirm('관리자 메뉴:\n[확인] 비밀번호 변경\n[취소] 로그아웃')) {
       document.getElementById('pwModal').classList.remove('hidden');
-    } else {
-      doLogout();
-    }
+    } else { doLogout(); }
   }
 }
 
@@ -242,15 +264,12 @@ async function doLogin() {
   const pw = document.getElementById('loginPw').value;
   const err = document.getElementById('loginErr');
   err.classList.add('hidden');
-  
   try {
     const r = await fetch(`${API_BASE}/auth?action=login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: pw })
     });
     const d = await r.json();
-    
     if (d.success) {
       token = d.token;
       localStorage.setItem('some_token', token);
@@ -270,8 +289,7 @@ async function doLogin() {
 async function doLogout() {
   try {
     await fetch(`${API_BASE}/auth?action=logout`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token })
     });
   } catch {}
@@ -294,15 +312,12 @@ async function doChangePw() {
   const ok = document.getElementById('pwOk');
   err.classList.add('hidden');
   ok.classList.add('hidden');
-  
   try {
     const r = await fetch(`${API_BASE}/auth?action=change-password`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token, oldPassword: oldPw, newPassword: newPw })
     });
     const d = await r.json();
-    
     if (d.success) {
       ok.textContent = '✅ ' + d.message;
       ok.classList.remove('hidden');
@@ -327,20 +342,14 @@ function closePwModal() {
 
 async function fetchAll() {
   if (loading) return;
-  loading = true;
-  setLoading(true);
-  hideBanner();
-
+  loading = true; setLoading(true); hideBanner();
   try {
     const r = await fetch(`${API_BASE}/data`);
     if (!r.ok) throw new Error('서버 응답 오류 (' + r.status + ')');
     const data = await r.json();
-    
     if (!data.success || !data.items) throw new Error('데이터를 불러올 수 없습니다');
-    
     const seen = new Set();
     const results = [];
-    
     for (const item of data.items) {
       const kw = (item.matchedKeywords && item.matchedKeywords[0]) || '기타';
       const b = parseBid(item, kw);
@@ -350,35 +359,27 @@ async function fetchAll() {
       seen.add(dupKey);
       results.push(b);
     }
-    
     DATA = results;
     await fetchHistory();
-    
     if (results.length === 0) {
       showBanner('warn', '⚠️ 키워드에 해당하는 공고가 없습니다.');
     } else {
-      updateKPI();
-      renderKwTags();
-      renderCards();
+      updateKPI(); renderKwTags(); renderCards(); buildCal();
       const now = new Date();
-      document.getElementById('subtitle').textContent =
-        `나라장터 실시간 연동 · ${now.getMonth()+1}월 ${now.getDate()}일 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} 업데이트`;
-      showBanner('ok', `✅ 총 ${DATA.filter(b=>b.dday>=0).length}건의 진행중 공고를 불러왔습니다. (사전규격 ${data.preSpecCount || 0}건 포함)`);
+      document.getElementById('subtitle').textContent = `나라장터 실시간 연동 · ${now.getMonth()+1}월 ${now.getDate()}일 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} 업데이트`;
+      showBanner('ok', `✅ 총 ${DATA.filter(b=>b.dday>=0).length}건의 진행중 공고를 불러왔습니다.`);
     }
   } catch (e) {
     console.error(e);
     showBanner('warn', '⚠️ 오류: ' + e.message);
   }
-  
-  loading = false;
-  setLoading(false);
+  loading = false; setLoading(false);
 }
 
 function parseBid(item, kw) {
   const dlRaw = (item.bidClseDt || item.opengDt || item.rcptDocClseDt || (item.bidNtceDt||'')+" 18:00").slice(0,16);
   let dday = 99;
   try { dday = Math.ceil((new Date(dlRaw) - new Date()) / 86400000); } catch {}
-
   const fmtAmt = v => {
     try {
       const n = parseInt(String(v).replace(/,/g,''));
@@ -388,25 +389,21 @@ function parseBid(item, kw) {
       return n.toLocaleString()+'원';
     } catch { return v||'미정'; }
   };
-
   const rawBudget = parseInt(String(item.presmptPrce || item.bdgtAmt || '0').replace(/,/g,'')) || 0;
   const bidNo = item.bidNtceNo || item.rcptDocPblancNo || '';
   const url = item.bidNtceUrl || item.linkUrl || (bidNo ? `https://www.g2b.go.kr:8101/ep/tbid/tbBidList.do?bidno=${bidNo}` : "https://www.g2b.go.kr");
-
   return {
     id: `${item.bidNtceNo||item.rcptDocPblancNo||''}-${item.bidNtceOrd||'000'}-${item.isPreSpec?'P':'B'}`,
+    bidNo: bidNo,
     title: item.bidNtceNm || item.rcptDocPblancNm || '',
     client: item.dminsttNm || item.ntceInsttNm || '',
     deadline: dlRaw,
     notice: (item.bidNtceDt || '').slice(0,10),
-    dday,
-    budget: fmtAmt(item.presmptPrce || item.bdgtAmt),
-    rawBudget,
-    track: item.track || 'B',
+    dday, budget: fmtAmt(item.presmptPrce || item.bdgtAmt),
+    rawBudget, track: item.track || 'B',
     industryStatus: item.industryStatus || 'unknown',
     industryName: item.industryName || '',
-    url, kw,
-    keywords: item.matchedKeywords || [kw]
+    url, kw, keywords: item.matchedKeywords || [kw]
   };
 }
 
@@ -418,10 +415,7 @@ function setLoading(on) {
 
 function showBanner(type, msg) {
   const b = document.getElementById('banner');
-  const cfg = {
-    ok: 'bg-emerald-900/40 border-emerald-700 text-emerald-300',
-    warn: 'bg-yellow-900/40 border-yellow-700 text-yellow-300',
-  }[type];
+  const cfg = { ok: 'bg-emerald-900/40 border-emerald-700 text-emerald-300', warn: 'bg-yellow-900/40 border-yellow-700 text-yellow-300' }[type];
   b.className = `mb-6 p-4 rounded-2xl border text-sm flex items-start gap-3 ${cfg}`;
   b.textContent = msg;
   b.classList.remove('hidden');
@@ -451,17 +445,14 @@ function toggleKw(kw, el) {
   renderCards();
 }
 
+function isParticipating(b) {
+  return HISTORY.some(h => h.bidNtceNo && b.bidNo && h.bidNtceNo === b.bidNo);
+}
+
 function renderCards() {
   let live = DATA.filter(b => b.dday >= 0);
-  
-  if (selectedKw.length) {
-    live = live.filter(b => (b.keywords || [b.kw]).some(k => selectedKw.includes(k)));
-  }
-  
-  if (document.getElementById('onlyEligible')?.checked) {
-    live = live.filter(b => b.industryStatus === 'match' || b.industryStatus === 'no_limit');
-  }
-  
+  if (selectedKw.length) live = live.filter(b => (b.keywords || [b.kw]).some(k => selectedKw.includes(k)));
+  if (document.getElementById('onlyEligible')?.checked) live = live.filter(b => b.industryStatus === 'match' || b.industryStatus === 'no_limit');
   const sortBy = document.getElementById('sortBy')?.value || 'deadline';
   live.sort((a, b) => {
     if (sortBy === 'deadline') return a.dday - b.dday;
@@ -473,10 +464,8 @@ function renderCards() {
     }
     return 0;
   });
-  
   const empty = `<div class="mc rounded-3xl p-8 border border-slate-700 text-center text-slate-500 text-sm">공고 없음</div>`;
   const mk = arr => arr.length ? arr.map(cardHtml).join('') : empty;
-  
   document.getElementById('preSpec').innerHTML = mk(live.filter(b=>b.track==='P'));
   document.getElementById('trackA').innerHTML = mk(live.filter(b=>b.track==='A'));
   document.getElementById('trackB').innerHTML = mk(live.filter(b=>b.track==='B'));
@@ -487,24 +476,18 @@ function cardHtml(b) {
   const col = colMap[b.track] || 'slate';
   const trackName = {A: 'A', B: 'B', P: '사전'}[b.track];
   const dc = b.dday<=7 ? 'text-red-400' : b.dday<=14 ? 'text-yellow-400' : 'text-slate-500';
-  
   let indBadge = '';
-  if (b.industryStatus === 'match') {
-    indBadge = '<span class="text-xs px-2 py-1 bg-emerald-900 text-emerald-400 rounded-xl font-bold">✓ 참가가능</span>';
-  } else if (b.industryStatus === 'mismatch') {
-    indBadge = `<span class="text-xs px-2 py-1 bg-red-900/60 text-red-400 rounded-xl">⚠ 업종 불일치${b.industryName?': '+b.industryName.slice(0,15):''}</span>`;
-  } else if (b.industryStatus === 'no_limit') {
-    indBadge = '<span class="text-xs px-2 py-1 bg-slate-700 text-slate-300 rounded-xl">제한 없음</span>';
-  }
-  
-  const isInHistory = HISTORY.some(h => h.bidNtceNo && h.bidNtceNo === b.id.split('-')[0]);
-  
-  const adminControls = isAdmin ? `
-    <button onclick="openHistModal('${b.id}')" class="px-3 py-1.5 text-xs bg-${isInHistory?'emerald':'blue'}-900 hover:bg-${isInHistory?'emerald':'blue'}-700 text-${isInHistory?'emerald':'blue'}-300 rounded-xl font-semibold transition">
-      <i class="fas fa-${isInHistory?'check':'plus'} mr-1"></i>${isInHistory?'참여완료':'참여'}
-    </button>` : '';
-  
-  return `<div class="mc rounded-3xl p-5 border border-slate-700">
+  if (b.industryStatus === 'match') indBadge = '<span class="text-xs px-2 py-1 bg-emerald-900 text-emerald-400 rounded-xl font-bold">✓ 참가가능</span>';
+  else if (b.industryStatus === 'mismatch') indBadge = `<span class="text-xs px-2 py-1 bg-red-900/60 text-red-400 rounded-xl">⚠ 업종 불일치${b.industryName?': '+b.industryName.slice(0,15):''}</span>`;
+  else if (b.industryStatus === 'no_limit') indBadge = '<span class="text-xs px-2 py-1 bg-slate-700 text-slate-300 rounded-xl">제한 없음</span>';
+  const participating = isParticipating(b);
+  let participationUI;
+  if (isAdmin) {
+    participationUI = `<div class="flex items-center gap-2" onclick="event.stopPropagation()"><input type="checkbox" ${participating?'checked':''} onchange="onCheckParticipate('${b.id}',this.checked)" class="accent-red-500 w-4 h-4 cursor-pointer"><span class="text-xs ${participating?'text-red-400 font-bold':'text-slate-400'}">${participating?'참여중':'참여'}</span></div>`;
+  } else if (participating) {
+    participationUI = `<span class="text-xs px-2 py-1 bg-red-900/40 text-red-300 rounded-xl font-bold">🔴 참여중</span>`;
+  } else { participationUI = ''; }
+  return `<div class="mc rounded-3xl p-5 border ${participating?'border-red-500/50':'border-slate-700'}">
     <div class="flex justify-between items-start mb-3">
       <div class="flex flex-wrap gap-1.5">
         <span class="text-xs px-3 py-1 bg-${col}-900 text-${col}-400 rounded-2xl font-medium">${trackName}</span>
@@ -513,23 +496,24 @@ function cardHtml(b) {
       </div>
       <span class="${dc} text-2xl font-bold shrink-0 ml-2">D-${b.dday}</span>
     </div>
-    <div class="mb-3">
-      <p class="font-semibold text-sm leading-snug text-white lc2">${b.title}</p>
-      <p class="text-xs text-slate-400 mt-1">${b.client}</p>
-    </div>
-    <div class="flex items-center justify-between text-sm mb-3">
-      <div><span class="text-xs text-slate-500">예상</span><span class="font-bold ml-1 text-white text-sm">${b.budget}</span></div>
-    </div>
+    <div class="mb-3"><p class="font-semibold text-sm leading-snug text-white lc2">${b.title}</p><p class="text-xs text-slate-400 mt-1">${b.client}</p></div>
+    <div class="flex items-center justify-between text-sm mb-3"><div><span class="text-xs text-slate-500">예상</span><span class="font-bold ml-1 text-white text-sm">${b.budget}</span></div>${participationUI}</div>
     <div class="mb-3">${indBadge}</div>
-    <div class="flex gap-2">
-      <a href="${b.url}" target="_blank" 
-        class="flex-1 py-2 bg-slate-700/50 hover:bg-blue-600 rounded-xl text-xs font-semibold text-center text-slate-300 hover:text-white transition flex items-center justify-center gap-1.5">
-        <i class="fas fa-external-link-alt"></i>공고 보기
-      </a>
-      ${adminControls}
-    </div>
+    <a href="${b.url}" target="_blank" class="block w-full py-2 bg-slate-700/50 hover:bg-blue-600 rounded-xl text-xs font-semibold text-center text-slate-300 hover:text-white transition flex items-center justify-center gap-1.5"><i class="fas fa-external-link-alt"></i>공고 보기</a>
     <div class="mt-2 text-xs text-slate-600"><i class="fas fa-clock mr-1"></i>${b.deadline}</div>
   </div>`;
+}
+
+function onCheckParticipate(bidId, checked) {
+  if (!isAdmin) return;
+  const b = DATA.find(x => x.id === bidId);
+  if (!b) return;
+  if (checked) { openHistModal(bidId); }
+  else {
+    const existing = HISTORY.find(h => h.bidNtceNo === b.bidNo);
+    if (existing && confirm('참여 등록을 취소하시겠습니까?\n(히스토리에서도 삭제됩니다)')) deleteHistory(existing.id, true);
+    else renderCards();
+  }
 }
 
 function switchTab(t) {
@@ -538,15 +522,12 @@ function switchTab(t) {
   const hist = document.getElementById('histView');
   const tDash = document.getElementById('tabDash');
   const tHist = document.getElementById('tabHist');
-  
   if (t === 'dash') {
-    dash.classList.remove('hidden');
-    hist.classList.add('hidden');
+    dash.classList.remove('hidden'); hist.classList.add('hidden');
     tDash.className = 'px-4 py-2 rounded-xl text-sm font-semibold bg-slate-700 text-white';
     tHist.className = 'px-4 py-2 rounded-xl text-sm font-semibold text-slate-400';
   } else {
-    dash.classList.add('hidden');
-    hist.classList.remove('hidden');
+    dash.classList.add('hidden'); hist.classList.remove('hidden');
     tHist.className = 'px-4 py-2 rounded-xl text-sm font-semibold bg-slate-700 text-white';
     tDash.className = 'px-4 py-2 rounded-xl text-sm font-semibold text-slate-400';
     renderHistory();
@@ -558,19 +539,14 @@ async function fetchHistory() {
     const r = await fetch(`${API_BASE}/history`);
     const d = await r.json();
     if (d.success) HISTORY = d.items || [];
-  } catch (e) {
-    console.error('히스토리 로드 실패:', e);
-  }
+  } catch (e) { console.error('히스토리 로드 실패:', e); }
 }
 
 function openHistModal(bidId) {
   if (!isAdmin) { showBanner('warn', '관리자만 사용 가능합니다.'); return; }
-  
   const b = DATA.find(x => x.id === bidId);
   if (!b) return;
-  
-  const existing = HISTORY.find(h => h.bidNtceNo === b.id.split('-')[0]);
-  
+  const existing = HISTORY.find(h => h.bidNtceNo === b.bidNo);
   document.getElementById('histId').value = existing?.id || '';
   document.getElementById('histTitle').value = b.title;
   document.getElementById('histResult').value = existing?.result || 'pending';
@@ -578,87 +554,62 @@ function openHistModal(bidId) {
   document.getElementById('histAttachUrl').value = existing?.attachmentUrl || '';
   document.getElementById('histAttachName').value = existing?.attachmentName || '';
   document.getElementById('histModalTitle').textContent = existing ? '참여 정보 수정' : '참여 정보 입력';
-  
+  document.getElementById('histDelBtn').classList.toggle('hidden', !existing);
   window._currentBid = b;
   window._existingHist = existing;
-  
   document.getElementById('histModal').classList.remove('hidden');
 }
 
 async function saveHistory() {
   const b = window._currentBid;
   const existing = window._existingHist;
-  
   const data = {
-    bidNtceNo: b.id.split('-')[0],
-    title: b.title,
-    client: b.client,
-    budget: b.budget,
-    deadline: b.deadline,
-    track: b.track,
-    keyword: b.kw,
-    url: b.url,
+    bidNtceNo: b.bidNo, title: b.title, client: b.client, budget: b.budget,
+    deadline: b.deadline, track: b.track, keyword: b.kw, url: b.url,
     result: document.getElementById('histResult').value,
     memo: document.getElementById('histMemo').value,
     attachmentUrl: document.getElementById('histAttachUrl').value,
     attachmentName: document.getElementById('histAttachName').value,
     participatedAt: existing?.participatedAt || new Date().toISOString()
   };
-  
   try {
     if (existing) {
-      await fetch(`${API_BASE}/history`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, id: existing.id, updates: data })
-      });
+      await fetch(`${API_BASE}/history`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, id: existing.id, updates: data }) });
     } else {
-      await fetch(`${API_BASE}/history`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, item: data })
-      });
+      await fetch(`${API_BASE}/history`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, item: data }) });
     }
-    
-    await fetchHistory();
-    closeHistModal();
-    renderCards();
+    await fetchHistory(); closeHistModal(); renderCards(); buildCal();
     if (currentTab === 'hist') renderHistory();
     showBanner('ok', '✅ 저장되었습니다.');
-  } catch (e) {
-    showBanner('warn', '저장 실패: ' + e.message);
+  } catch (e) { showBanner('warn', '저장 실패: ' + e.message); }
+}
+
+function removeFromHistory() {
+  const existing = window._existingHist;
+  if (existing && confirm('이 참여 기록을 삭제하시겠습니까?')) {
+    deleteHistory(existing.id, true);
+    closeHistModal();
   }
 }
 
 function closeHistModal() {
   document.getElementById('histModal').classList.add('hidden');
+  renderCards();
 }
 
-async function deleteHistory(id) {
+async function deleteHistory(id, skipConfirm) {
   if (!isAdmin) return;
-  if (!confirm('정말 삭제하시겠습니까?')) return;
-  
+  if (!skipConfirm && !confirm('정말 삭제하시겠습니까?')) return;
   try {
-    await fetch(`${API_BASE}/history`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, id })
-    });
-    await fetchHistory();
-    renderHistory();
-    renderCards();
+    await fetch(`${API_BASE}/history`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, id }) });
+    await fetchHistory(); renderHistory(); renderCards(); buildCal();
     showBanner('ok', '삭제되었습니다.');
-  } catch (e) {
-    showBanner('warn', '삭제 실패: ' + e.message);
-  }
+  } catch (e) { showBanner('warn', '삭제 실패: ' + e.message); }
 }
 
 function renderHistory() {
-  if (HISTORY.length === 0) {
-    fetchHistory().then(() => _renderHistList());
-  } else {
-    _renderHistList();
-  }
+  if (HISTORY.length === 0) fetchHistory().then(() => _renderHistList());
+  else _renderHistList();
 }
 
 function _renderHistList() {
@@ -666,24 +617,12 @@ function _renderHistList() {
   document.getElementById('h2').textContent = HISTORY.filter(h => h.result === 'won').length;
   document.getElementById('h3').textContent = HISTORY.filter(h => h.result === 'lost').length;
   document.getElementById('h4').textContent = HISTORY.filter(h => h.result === 'pending').length;
-  
   const search = document.getElementById('histSearch').value.toLowerCase();
   const filter = document.getElementById('histFilter').value;
-  
   let list = HISTORY;
-  if (search) list = list.filter(h => 
-    (h.title || '').toLowerCase().includes(search) || 
-    (h.client || '').toLowerCase().includes(search) ||
-    (h.memo || '').toLowerCase().includes(search)
-  );
+  if (search) list = list.filter(h => (h.title || '').toLowerCase().includes(search) || (h.client || '').toLowerCase().includes(search) || (h.memo || '').toLowerCase().includes(search));
   if (filter) list = list.filter(h => h.result === filter);
-  
-  const resultMap = {
-    won: ['🏆 당선', 'bg-emerald-900 text-emerald-400'],
-    lost: ['❌ 낙선', 'bg-red-900 text-red-400'],
-    pending: ['⏳ 대기 중', 'bg-yellow-900 text-yellow-400']
-  };
-  
+  const resultMap = { won: ['🏆 당선', 'bg-emerald-900 text-emerald-400'], lost: ['❌ 낙선', 'bg-red-900 text-red-400'], pending: ['⏳ 대기 중', 'bg-yellow-900 text-yellow-400'] };
   const html = list.length === 0 
     ? `<div class="mc rounded-3xl p-10 border border-slate-700 text-center text-slate-500 text-sm">참여 이력이 없습니다</div>`
     : list.map(h => {
@@ -699,39 +638,21 @@ function _renderHistList() {
             </div>
             <span class="text-xs text-slate-500">참여일: ${dt}</span>
           </div>
-          <div class="mb-3">
-            <p class="font-semibold text-base text-white">${h.title}</p>
-            <p class="text-sm text-slate-400 mt-1">${h.client} · 예산 ${h.budget}</p>
-          </div>
+          <div class="mb-3"><p class="font-semibold text-base text-white">${h.title}</p><p class="text-sm text-slate-400 mt-1">${h.client} · 예산 ${h.budget}</p></div>
           ${h.memo ? `<div class="mb-3 p-3 bg-slate-800 rounded-xl text-sm text-slate-300 whitespace-pre-wrap">${h.memo}</div>` : ''}
-          ${h.attachmentUrl ? `<div class="mb-3">
-            <a href="${h.attachmentUrl}" target="_blank" class="text-xs text-blue-400 hover:underline">
-              <i class="fas fa-paperclip mr-1"></i>${h.attachmentName || '첨부파일'}
-            </a>
-          </div>` : ''}
+          ${h.attachmentUrl ? `<div class="mb-3"><a href="${h.attachmentUrl}" target="_blank" class="text-xs text-blue-400 hover:underline"><i class="fas fa-paperclip mr-1"></i>${h.attachmentName || '첨부파일'}</a></div>` : ''}
           <div class="flex gap-2">
-            <a href="${h.url}" target="_blank" class="flex-1 py-2 bg-slate-700/50 hover:bg-blue-600 rounded-xl text-xs font-semibold text-center text-slate-300 hover:text-white transition">
-              <i class="fas fa-external-link-alt mr-1"></i>공고 보기
-            </a>
-            ${isAdmin ? `
-              <button onclick="editHistory('${h.id}')" class="px-4 py-2 bg-blue-900 hover:bg-blue-700 text-blue-300 rounded-xl text-xs font-semibold">
-                <i class="fas fa-edit mr-1"></i>수정
-              </button>
-              <button onclick="deleteHistory('${h.id}')" class="px-4 py-2 bg-red-900/60 hover:bg-red-700 text-red-300 rounded-xl text-xs font-semibold">
-                <i class="fas fa-trash mr-1"></i>삭제
-              </button>
-            ` : ''}
+            <a href="${h.url}" target="_blank" class="flex-1 py-2 bg-slate-700/50 hover:bg-blue-600 rounded-xl text-xs font-semibold text-center text-slate-300 hover:text-white transition"><i class="fas fa-external-link-alt mr-1"></i>공고 보기</a>
+            ${isAdmin ? `<button onclick="editHistory('${h.id}')" class="px-4 py-2 bg-blue-900 hover:bg-blue-700 text-blue-300 rounded-xl text-xs font-semibold"><i class="fas fa-edit mr-1"></i>수정</button><button onclick="deleteHistory('${h.id}')" class="px-4 py-2 bg-red-900/60 hover:bg-red-700 text-red-300 rounded-xl text-xs font-semibold"><i class="fas fa-trash mr-1"></i>삭제</button>` : ''}
           </div>
         </div>`;
       }).join('');
-  
   document.getElementById('histList').innerHTML = html;
 }
 
 function editHistory(id) {
   const h = HISTORY.find(x => x.id === id);
   if (!h) return;
-  
   document.getElementById('histId').value = h.id;
   document.getElementById('histTitle').value = h.title;
   document.getElementById('histResult').value = h.result;
@@ -739,24 +660,73 @@ function editHistory(id) {
   document.getElementById('histAttachUrl').value = h.attachmentUrl || '';
   document.getElementById('histAttachName').value = h.attachmentName || '';
   document.getElementById('histModalTitle').textContent = '참여 정보 수정';
-  
-  window._currentBid = {
-    id: h.bidNtceNo + '-000-B',
-    title: h.title,
-    client: h.client,
-    budget: h.budget,
-    deadline: h.deadline,
-    track: h.track,
-    kw: h.keyword,
-    url: h.url
-  };
+  document.getElementById('histDelBtn').classList.remove('hidden');
+  window._currentBid = { id: h.bidNtceNo + '-000-B', bidNo: h.bidNtceNo, title: h.title, client: h.client, budget: h.budget, deadline: h.deadline, track: h.track, kw: h.keyword, url: h.url };
   window._existingHist = h;
-  
   document.getElementById('histModal').classList.remove('hidden');
+}
+
+function toggleCal() {
+  calOpen = !calOpen;
+  document.getElementById('calIcon').style.opacity = calOpen ? '0' : '1';
+  document.getElementById('calIcon').style.pointerEvents = calOpen ? 'none' : 'auto';
+  document.getElementById('calPanel').classList.toggle('hidden', !calOpen);
+  if (calOpen) buildCal();
+}
+
+function buildCal() {
+  document.getElementById('calTitle').textContent = `${calY}년 ${calM}월`;
+  document.getElementById('cy').textContent = calY;
+  document.getElementById('cm').textContent = String(calM).padStart(2,'0');
+  const g = document.getElementById('calGrid');
+  g.innerHTML = '';
+  ['일','월','화','수','목','금','토'].forEach(d => {
+    const e = document.createElement('div');
+    e.className = 'h-7 flex items-center justify-center text-xs text-slate-500 font-medium';
+    e.textContent = d; g.appendChild(e);
+  });
+  const first = new Date(calY, calM-1, 1).getDay();
+  const days = new Date(calY, calM, 0).getDate();
+  const today = new Date();
+  for (let i=0; i<first; i++) { const e=document.createElement('div'); e.className='h-8'; g.appendChild(e); }
+  for (let day=1; day<=days; day++) {
+    const hasBid = HISTORY.some(h => {
+      if (!h.deadline) return false;
+      const d = new Date(h.deadline);
+      return d.getFullYear()===calY && d.getMonth()+1===calM && d.getDate()===day;
+    });
+    const isToday = calY===today.getFullYear() && calM===today.getMonth()+1 && day===today.getDate();
+    const e = document.createElement('div');
+    e.className = `h-8 flex items-center justify-center text-sm cursor-pointer rounded-xl transition-all ${isToday?'bg-blue-900 text-blue-300 font-bold':''} ${hasBid?'ring-2 ring-red-500/60 text-red-400 font-semibold':'text-slate-300 hover:bg-slate-800'}`;
+    e.textContent = day;
+    e.onclick = () => showDay(day);
+    g.appendChild(e);
+  }
+}
+
+function prevM() { calM--; if(calM<1){calM=12;calY--;} buildCal(); }
+function nextM() { calM++; if(calM>12){calM=1;calY++;}buildCal(); }
+
+function showDay(day) {
+  document.getElementById('calDate').textContent = `${calM}월 ${day}일 마감 공고`;
+  const f = HISTORY.filter(h => {
+    if (!h.deadline) return false;
+    const d = new Date(h.deadline);
+    return d.getFullYear()===calY && d.getMonth()+1===calM && d.getDate()===day;
+  });
+  const resultMap = {won: '🏆', lost: '❌', pending: '⏳'};
+  document.getElementById('calBids').innerHTML = f.length === 0
+    ? `<p class="text-slate-500 py-4 text-center text-sm">마감 공고 없음</p>`
+    : f.map(h => {
+        const dlDate = new Date(h.deadline);
+        const dday = Math.ceil((dlDate - new Date()) / 86400000);
+        return `<a href="${h.url}" target="_blank" class="flex justify-between items-center p-3 bg-slate-800 hover:bg-slate-700 rounded-2xl cursor-pointer gap-2"><div class="min-w-0 flex-1"><div class="font-medium text-sm truncate">${resultMap[h.result]||''} ${h.title}</div><div class="text-xs text-slate-400">${h.client}</div></div><span class="font-extrabold text-red-400 shrink-0 text-sm">${dday>=0?'D-'+dday:'마감'}</span></a>`;
+      }).join('');
 }
 
 window.onload = async () => { 
   await verifyAuth();
+  buildCal();
   fetchAll(); 
 };
 </script>
