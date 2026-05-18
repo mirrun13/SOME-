@@ -49,30 +49,37 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <div>
-      <div class="flex items-center gap-2 mb-4 px-1"><div class="w-2.5 h-2.5 bg-blue-500 rounded-full"></div><span class="text-sm font-semibold text-slate-400">Track A — 제안</span></div>
-      <div id="trackA" class="space-y-3">
+      <h2 class="text-base font-bold mb-4 flex items-center gap-2 text-blue-400">
+        <span class="w-2 h-2 bg-blue-500 rounded-full"></span>Track A — 제안
+      </h2>
+      <div class="space-y-3" id="trackA">
         <div class="mc rounded-3xl p-10 border border-slate-700 text-center text-slate-500 text-sm">위 버튼을 눌러 데이터를 불러오세요</div>
       </div>
     </div>
     <div>
-      <div class="flex items-center gap-2 mb-4 px-1"><div class="w-2.5 h-2.5 bg-emerald-500 rounded-full"></div><span class="text-sm font-semibold text-slate-400">Track B — 투찰</span></div>
-      <div id="trackB" class="space-y-3">
+      <h2 class="text-base font-bold mb-4 flex items-center gap-2 text-emerald-400">
+        <span class="w-2 h-2 bg-emerald-500 rounded-full"></span>Track B — 투찰
+      </h2>
+      <div class="space-y-3" id="trackB">
         <div class="mc rounded-3xl p-10 border border-slate-700 text-center text-slate-500 text-sm">위 버튼을 눌러 데이터를 불러오세요</div>
       </div>
     </div>
   </div>
+
 </div>
 
 <div class="fixed bottom-8 right-8 z-50">
-  <div id="ci" onclick="toggleCal()" class="w-16 h-16 bg-white rounded-3xl flex flex-col items-center justify-center cursor-pointer shadow-xl hover:shadow-2xl active:scale-95 transition-all">
-    <div class="text-slate-900 text-[10px] font-medium tracking-widest" id="cy">2026</div>
-    <div class="text-slate-900 text-4xl font-bold leading-none" id="cm">05</div>
-  </div>
-  <div id="cp" class="hidden absolute bottom-0 right-0 bg-slate-900 rounded-3xl shadow-2xl p-5 w-72 border border-slate-700">
-    <div class="flex items-center justify-between mb-3">
-      <button onclick="prevM()" class="w-8 h-8 text-2xl text-slate-400 hover:text-white flex items-center justify-center">‹</button>
+  <button id="ci" onclick="toggleCal()" 
+    class="bg-blue-600 hover:bg-blue-500 text-white rounded-2xl shadow-xl shadow-blue-900/40 p-4 flex flex-col items-center justify-center w-20 h-20 transition-all hover:scale-105">
+    <div class="text-[10px] uppercase tracking-wider font-bold opacity-80" id="cy">2026</div>
+    <div class="text-2xl font-extrabold" id="cm">05</div>
+  </button>
+  
+  <div id="cp" class="hidden absolute bottom-0 right-0 bg-slate-900 rounded-3xl shadow-2xl border border-slate-700 p-6 w-80">
+    <div class="flex justify-between items-center mb-4">
+      <button onclick="prevM()" class="w-8 h-8 text-2xl text-slate-400 hover:text-white flex items-center justify-center"><</button>
       <span class="font-semibold" id="calTitle"></span>
-      <button onclick="nextM()" class="w-8 h-8 text-2xl text-slate-400 hover:text-white flex items-center justify-center">›</button>
+      <button onclick="nextM()" class="w-8 h-8 text-2xl text-slate-400 hover:text-white flex items-center justify-center">></button>
     </div>
     <div id="calGrid" class="grid grid-cols-7 gap-1 text-center text-sm"></div>
     <div class="mt-4 pt-4 border-t border-slate-700">
@@ -84,19 +91,11 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
 </div>
 
 <script>
-const API_KEY  = "183930463902db8616a702c3c3c875687e7f85b717d1ac6352473b3b9d390f5f";
-const KEYWORDS = ["전시","홍보관","과학관","체험","박물관","행사","홍보","인테리어","디자인","공간"];
-const DAYS     = 60;
-const BASE_URL = "https://corsproxy.io/?" + encodeURIComponent("http://apis.data.go.kr/1230000/BidPublicInfoService/getBidPblancListInfoServcPPSSrch");
+const API_ENDPOINT = "https://narajangter-api-test.vercel.app/api/test";
+
 let DATA = [], selectedKw = [];
 let calY = new Date().getFullYear(), calM = new Date().getMonth()+1, calOpen = false;
 let loading = false;
-
-function buildUrl(keyword) {
-  const now = new Date(), end = new Date(now.getTime() + DAYS*86400000);
-  const fmt = d => `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
-  return `${BASE_URL}?ServiceKey=${API_KEY}&pageNo=1&numOfRows=100&type=json&inqryDiv=1&inqryBgnDt=${fmt(now)}0000&inqryEndDt=${fmt(end)}2359&bidNtceNm=${encodeURIComponent(keyword)}`;
-}
 
 async function fetchAll() {
   if (loading) return;
@@ -104,60 +103,54 @@ async function fetchAll() {
   setLoading(true);
   hideBanner();
 
-  const seen = new Set(), results = [];
-
-  for (let i = 0; i < KEYWORDS.length; i++) {
-    const kw = KEYWORDS[i];
-    try {
-      const r = await fetch(buildUrl(kw));
-      if (!r.ok) continue;
-      const data = await r.json();
-      
-      if (data?.response?.header?.resultCode !== '00') {
-        console.warn(`${kw}: ${data?.response?.header?.resultMsg}`);
-        continue;
-      }
-      
-      let items = data?.response?.body?.items;
-      if (!items) continue;
-      if (!Array.isArray(items)) items = [items];
-      
-      for (const item of items) {
-        const b = parseBid(item, kw);
-        if (!b.title || seen.has(b.id)) continue;
-        seen.add(b.id);
-        results.push(b);
-      }
-    } catch (e) { 
-      console.warn(kw, e); 
+  try {
+    const r = await fetch(API_ENDPOINT);
+    if (!r.ok) throw new Error('서버 응답 오류 (' + r.status + ')');
+    const data = await r.json();
+    
+    if (!data.success || !data.items) {
+      throw new Error('데이터를 불러올 수 없습니다');
     }
+    
+    const seen = new Set();
+    const results = [];
+    
+    for (const item of data.items) {
+      const kw = (item.matchedKeywords && item.matchedKeywords[0]) || '기타';
+      const b = parseBid(item, kw);
+      if (!b.title || seen.has(b.id)) continue;
+      seen.add(b.id);
+      results.push(b);
+    }
+    
+    if (results.length === 0) {
+      showBanner('warn', '⚠️ 키워드에 해당하는 공고가 없습니다.');
+    } else {
+      DATA = results.sort((a,b) => a.dday - b.dday);
+      updateKPI();
+      renderKwTags();
+      renderCards();
+      buildCal();
+      const now = new Date();
+      document.getElementById('subtitle').textContent =
+        `나라장터 실시간 연동 · ${now.getMonth()+1}월 ${now.getDate()}일 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} 업데이트`;
+      showBanner('ok', `✅ 총 ${DATA.length}건의 공고를 불러왔습니다.`);
+    }
+  } catch (e) {
+    console.error(e);
+    showBanner('warn', '⚠️ 오류: ' + e.message);
   }
-
-  if (results.length === 0) {
-    showBanner('warn', '⚠️ 키워드에 해당하는 공고가 없습니다.');
-  } else {
-    DATA = results.sort((a,b) => a.dday - b.dday);
-    updateKPI();
-    renderKwTags();
-    renderCards();
-    buildCal();
-    const now = new Date();
-    document.getElementById('subtitle').textContent =
-      `나라장터 실시간 연동 · ${now.getMonth()+1}월 ${now.getDate()}일 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} 업데이트`;
-    showBanner('ok', `✅ 총 ${DATA.length}건의 공고를 불러왔습니다.`);
-  }
-
+  
   loading = false;
   setLoading(false);
 }
 
 function parseBid(item, kw) {
-  const dlRaw = (item.bidCloseDateTime || item.opengDateTime || (item.bidNtceDt||'')+" 18:00").slice(0,16);
+  const dlRaw = (item.bidClseDt || item.bidCloseDateTime || item.opengDt || item.opengDateTime || (item.bidNtceDt||'')+" 18:00").slice(0,16);
   let dday = 99, dl = dlRaw;
-  try { dday = Math.max(0, Math.ceil((new Date(dlRaw) - new Date()) / 86400000)); } catch {}
+  try { dday = Math.ceil((new Date(dlRaw) - new Date()) / 86400000); } catch {}
 
-  const methods = `${item.cntrctCnclsMthd||''} ${item.bidMethdNm||''} ${item.prsnatnOprtnDivNm||''}`;
-  const track = /협상|기술제안|제안서|2단계|설계공모/.test(methods) ? 'A' : 'B';
+  const track = item.track || 'B';
 
   const fmtAmt = v => {
     try {
@@ -170,7 +163,7 @@ function parseBid(item, kw) {
   };
 
   const bidNo = item.bidNtceNo || "";
-  const url = item.linkUrl || (bidNo ? `https://www.g2b.go.kr:8101/ep/tbid/tbBidList.do?bidno=${bidNo}` : "https://www.g2b.go.kr");
+  const url = item.bidNtceUrl || item.linkUrl || (bidNo ? `https://www.g2b.go.kr:8101/ep/tbid/tbBidList.do?bidno=${bidNo}` : "https://www.g2b.go.kr");
 
   return {
     id: `${item.bidNtceNo||''}-${item.bidNtceOrd||'000'}`,
@@ -205,10 +198,11 @@ function showBanner(type, msg) {
 function hideBanner() { document.getElementById('banner').classList.add('hidden'); }
 
 function updateKPI() {
-  document.getElementById('k1').textContent = DATA.length;
-  document.getElementById('k2').textContent = DATA.filter(b=>b.dday<=7).length;
-  document.getElementById('k3').textContent = DATA.filter(b=>b.track==='A').length;
-  document.getElementById('k4').textContent = DATA.filter(b=>b.track==='B').length;
+  const live = DATA.filter(b => b.dday >= 0);
+  document.getElementById('k1').textContent = live.length;
+  document.getElementById('k2').textContent = live.filter(b=>b.dday<=7).length;
+  document.getElementById('k3').textContent = live.filter(b=>b.track==='A').length;
+  document.getElementById('k4').textContent = live.filter(b=>b.track==='B').length;
 }
 
 function renderKwTags() {
@@ -225,7 +219,8 @@ function toggleKw(kw, el) {
 }
 
 function renderCards() {
-  const show = selectedKw.length ? DATA.filter(b=>selectedKw.includes(b.kw)) : DATA;
+  const live = DATA.filter(b => b.dday >= 0);
+  const show = selectedKw.length ? live.filter(b=>selectedKw.includes(b.kw)) : live;
   const empty = `<div class="mc rounded-3xl p-10 border border-slate-700 text-center text-slate-500 text-sm">공고 없음</div>`;
   const mk = arr => arr.length ? arr.map(cardHtml).join('') : empty;
   document.getElementById('trackA').innerHTML = mk(show.filter(b=>b.track==='A'));
