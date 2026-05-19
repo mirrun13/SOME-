@@ -19,9 +19,18 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
 .kpi-card{cursor:pointer;user-select:none;}
 .kpi-card.active{outline:3px solid #3b82f6;outline-offset:-3px;transform:scale(1.02);}
 @media (max-width: 768px) {
-  .kn{font-size:28px;}
+  .kn{font-size:20px;}
   .filter-mobile{flex-direction:column;align-items:stretch;}
   .filter-mobile > div{width:100%;}
+  .lc2 { font-size: 11px; line-height: 1.3; }
+  .mc-mobile { padding: 8px !important; border-radius: 12px !important; }
+  .mc-mobile .text-xs { font-size: 9px; padding: 2px 5px; }
+  .mc-mobile .dday { font-size: 14px !important; }
+  .mc-mobile .budget-amt { font-size: 11px !important; }
+  .mc-mobile .client-name { font-size: 10px; }
+  .mc-mobile .date-info { font-size: 9px; }
+  .mc-mobile a.view-btn { padding: 4px 8px; font-size: 10px; }
+  .col-header { font-size: 11px !important; text-align: center; }
 }
 </style>
 </head>
@@ -33,7 +42,7 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
     <i class="fas fa-shield-alt text-5xl text-blue-500 mb-6"></i>
     <h2 class="text-3xl font-bold text-white mb-2">SOME 대시보드</h2>
     <p class="text-slate-400 text-sm mb-8">안전한 열람을 위해 비밀번호를 입력해주세요.</p>
-  <input type="password" id="startupPw" autocomplete="new-password"
+    <input type="password" id="startupPw" autocomplete="new-password"
       class="w-full px-4 py-4 bg-slate-800 border border-slate-700 rounded-2xl text-white mb-4 focus:outline-none focus:border-blue-500 text-center tracking-widest text-lg"
       onkeydown="if(event.key==='Enter') unlockDash()">
     <div id="startupErr" class="text-red-400 text-sm mb-4 hidden font-bold">❌ 비밀번호가 일치하지 않습니다.</div>
@@ -112,51 +121,51 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
     </div>
   </div>
 
-  <div class="max-w-screen-xl mx-auto px-4 md:px-6 py-6 md:py-10">
+  <div class="max-w-screen-xl mx-auto px-2 md:px-6 py-4 md:py-10">
 
-    <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-6 md:mb-10 gap-4">
+    <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-4 md:mb-10 gap-3">
       <div>
-        <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-white">SOME 입찰계획</h1>
-        <p class="text-slate-400 mt-2 text-sm" id="subtitle">나라장터 실시간 연동 · 로딩 전</p>
+        <h1 class="text-2xl md:text-4xl font-bold tracking-tight text-white">SOME 입찰계획</h1>
+        <p class="text-slate-400 mt-1 md:mt-2 text-xs md:text-sm" id="subtitle">나라장터 실시간 연동 · 로딩 전</p>
       </div>
-      <div class="flex gap-2 items-center flex-wrap">
+      <div class="flex gap-1 md:gap-2 items-center flex-wrap">
         <div class="flex bg-slate-800 rounded-2xl p-1">
-          <button id="tabDash" onclick="switchTab('dash')" class="px-3 md:px-4 py-2 rounded-xl text-sm font-semibold bg-slate-700 text-white">대시보드</button>
-          <button id="tabHist" onclick="switchTab('hist')" class="px-3 md:px-4 py-2 rounded-xl text-sm font-semibold text-slate-400">히스토리</button>
+          <button id="tabDash" onclick="switchTab('dash')" class="px-2 md:px-4 py-2 rounded-xl text-xs md:text-sm font-semibold bg-slate-700 text-white">대시보드</button>
+          <button id="tabHist" onclick="switchTab('hist')" class="px-2 md:px-4 py-2 rounded-xl text-xs md:text-sm font-semibold text-slate-400">히스토리</button>
         </div>
-        <button onclick="fetchAll(true)" id="searchBtn" class="px-4 md:px-5 py-3 bg-blue-600 hover:bg-blue-500 active:scale-95 text-sm font-bold text-white rounded-2xl flex items-center gap-2 transition shadow-lg shadow-blue-900/40">
+        <button onclick="fetchAll(true)" id="searchBtn" class="px-3 md:px-5 py-2 md:py-3 bg-blue-600 hover:bg-blue-500 active:scale-95 text-xs md:text-sm font-bold text-white rounded-2xl flex items-center gap-1 md:gap-2 transition shadow-lg shadow-blue-900/40">
           <i class="fas fa-rotate text-xs" id="searchIco"></i>
           <span id="searchTxt">업데이트</span>
         </button>
-        <button id="adminBtn" onclick="adminAction()" class="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-sm font-semibold text-slate-300 rounded-2xl flex items-center gap-2 transition">
+        <button id="adminBtn" onclick="adminAction()" class="px-3 md:px-4 py-2 md:py-3 bg-slate-800 hover:bg-slate-700 text-xs md:text-sm font-semibold text-slate-300 rounded-2xl flex items-center gap-1 md:gap-2 transition">
           <i class="fas fa-user-shield text-xs"></i>
           <span id="adminBtnTxt">관리자</span>
         </button>
       </div>
     </div>
 
-    <div id="banner" class="hidden mb-6 p-4 rounded-2xl border text-sm flex items-start gap-3"></div>
+    <div id="banner" class="hidden mb-4 md:mb-6 p-3 md:p-4 rounded-2xl border text-xs md:text-sm flex items-start gap-3"></div>
 
     <div id="dashView">
-      <div class="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4 mb-6 md:mb-8">
-        <div class="mc kpi-card p-3 md:p-5 rounded-3xl border border-slate-700" data-filter="all" onclick="filterByKpi('all')">
-          <div class="text-xs text-slate-400 mb-1">전체 진행중</div>
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4 mb-4 md:mb-8">
+        <div class="mc kpi-card p-2 md:p-5 rounded-2xl md:rounded-3xl border border-slate-700" data-filter="all" onclick="filterByKpi('all')">
+          <div class="text-[10px] md:text-xs text-slate-400 mb-1">전체 진행중</div>
           <div class="kn" id="k1">—</div>
         </div>
-        <div class="mc kpi-card p-3 md:p-5 rounded-3xl border-l-4 border-red-500" data-filter="urgent" onclick="filterByKpi('urgent')">
-          <div class="text-xs text-red-400 mb-1">긴급 (D-7이하)</div>
+        <div class="mc kpi-card p-2 md:p-5 rounded-2xl md:rounded-3xl border-l-4 border-red-500" data-filter="urgent" onclick="filterByKpi('urgent')">
+          <div class="text-[10px] md:text-xs text-red-400 mb-1">긴급 (D-7이하)</div>
           <div class="kn text-red-400" id="k2">—</div>
         </div>
-        <div class="mc kpi-card p-3 md:p-5 rounded-3xl border-l-4 border-purple-500" data-filter="P" onclick="filterByKpi('P')">
-          <div class="text-xs text-purple-400 mb-1">사전규격</div>
+        <div class="mc kpi-card p-2 md:p-5 rounded-2xl md:rounded-3xl border-l-4 border-purple-500" data-filter="P" onclick="filterByKpi('P')">
+          <div class="text-[10px] md:text-xs text-purple-400 mb-1">사전규격</div>
           <div class="kn text-purple-400" id="k5">—</div>
         </div>
-        <div class="mc kpi-card p-3 md:p-5 rounded-3xl border-l-4 border-blue-500" data-filter="A" onclick="filterByKpi('A')">
-          <div class="text-xs text-blue-400 mb-1">Track A (제안)</div>
+        <div class="mc kpi-card p-2 md:p-5 rounded-2xl md:rounded-3xl border-l-4 border-blue-500" data-filter="A" onclick="filterByKpi('A')">
+          <div class="text-[10px] md:text-xs text-blue-400 mb-1">Track A (제안)</div>
           <div class="kn text-blue-400" id="k3">—</div>
         </div>
-        <div class="mc kpi-card p-3 md:p-5 rounded-3xl border-l-4 border-emerald-500" data-filter="B" onclick="filterByKpi('B')">
-          <div class="text-xs text-emerald-400 mb-1">Track B (투찰)</div>
+        <div class="mc kpi-card p-2 md:p-5 rounded-2xl md:rounded-3xl border-l-4 border-emerald-500" data-filter="B" onclick="filterByKpi('B')">
+          <div class="text-[10px] md:text-xs text-emerald-400 mb-1">Track B (투찰)</div>
           <div class="kn text-emerald-400" id="k4">—</div>
         </div>
       </div>
@@ -184,7 +193,7 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
         </div>
       </div>
 
-      <div class="mb-6">
+      <div class="mb-4 md:mb-6">
         <p class="text-xs text-slate-500 mb-2 px-1">검색</p>
         <div class="relative">
           <i class="fas fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
@@ -193,29 +202,29 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
         </div>
       </div>
 
-      <div class="grid grid-cols-3 gap-2">
+      <div class="grid grid-cols-3 gap-2 md:gap-6">
         <div>
-          <h2 class="text-base font-bold mb-4 flex items-center gap-2 text-purple-400">
+          <h2 class="col-header text-base font-bold mb-2 md:mb-4 flex items-center gap-2 text-purple-400 justify-center md:justify-start">
             <span class="w-2 h-2 bg-purple-500 rounded-full"></span>사전규격
           </h2>
-          <div class="space-y-3" id="preSpec">
-            <div class="mc rounded-3xl p-8 border border-slate-700 text-center text-slate-500 text-sm">검색을 눌러주세요</div>
+          <div class="space-y-2 md:space-y-3" id="preSpec">
+            <div class="mc rounded-2xl p-4 md:p-8 border border-slate-700 text-center text-slate-500 text-xs md:text-sm">검색을 눌러주세요</div>
           </div>
         </div>
         <div>
-          <h2 class="text-base font-bold mb-4 flex items-center gap-2 text-blue-400">
+          <h2 class="col-header text-base font-bold mb-2 md:mb-4 flex items-center gap-2 text-blue-400 justify-center md:justify-start">
             <span class="w-2 h-2 bg-blue-500 rounded-full"></span>Track A — 제안
           </h2>
-          <div class="space-y-3" id="trackA">
-            <div class="mc rounded-3xl p-8 border border-slate-700 text-center text-slate-500 text-sm">검색을 눌러주세요</div>
+          <div class="space-y-2 md:space-y-3" id="trackA">
+            <div class="mc rounded-2xl p-4 md:p-8 border border-slate-700 text-center text-slate-500 text-xs md:text-sm">검색을 눌러주세요</div>
           </div>
         </div>
         <div>
-          <h2 class="text-base font-bold mb-4 flex items-center gap-2 text-emerald-400">
+          <h2 class="col-header text-base font-bold mb-2 md:mb-4 flex items-center gap-2 text-emerald-400 justify-center md:justify-start">
             <span class="w-2 h-2 bg-emerald-500 rounded-full"></span>Track B — 투찰
           </h2>
-          <div class="space-y-3" id="trackB">
-            <div class="mc rounded-3xl p-8 border border-slate-700 text-center text-slate-500 text-sm">검색을 눌러주세요</div>
+          <div class="space-y-2 md:space-y-3" id="trackB">
+            <div class="mc rounded-2xl p-4 md:p-8 border border-slate-700 text-center text-slate-500 text-xs md:text-sm">검색을 눌러주세요</div>
           </div>
         </div>
       </div>
@@ -242,9 +251,9 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
   </div>
 
   <div class="fixed bottom-6 right-6 z-50">
-    <button id="calIcon" onclick="toggleCal()" class="bg-blue-600 hover:bg-blue-500 text-white rounded-2xl shadow-xl shadow-blue-900/40 p-4 flex flex-col items-center justify-center w-16 h-16 md:w-20 md:h-20 transition-all hover:scale-105">
+    <button id="calIcon" onclick="toggleCal()" class="bg-blue-600 hover:bg-blue-500 text-white rounded-2xl shadow-xl shadow-blue-900/40 p-4 flex flex-col items-center justify-center w-14 h-14 md:w-20 md:h-20 transition-all hover:scale-105">
       <div class="text-[9px] md:text-[10px] uppercase tracking-wider font-bold opacity-80" id="cy">2026</div>
-      <div class="text-xl md:text-2xl font-extrabold" id="cm">05</div>
+      <div class="text-lg md:text-2xl font-extrabold" id="cm">05</div>
     </button>
     <div id="calPanel" class="hidden absolute bottom-0 right-0 bg-slate-900 rounded-3xl shadow-2xl border border-slate-700 p-6 w-80">
       <div class="flex justify-between items-center mb-4">
@@ -274,7 +283,7 @@ let calY = new Date().getFullYear(), calM = new Date().getMonth()+1, calOpen = f
 let kpiFilter = null;
 
 async function unlockDash() {
-const input = document.getElementById('startupPw')?.value || '';
+  const input = document.getElementById('startupPw')?.value || '';
   const errUI = document.getElementById('startupErr');
   if (!input) {
     errUI.textContent = '❌ 비밀번호를 입력해주세요.';
@@ -498,7 +507,6 @@ async function fetchAll(forceRefresh) {
   loading = false; setLoading(false);
 }
 
-// [핵심 수정] 사전규격 날짜, 제목 완벽 파싱 및 필터링 이탈 방지
 function parseBid(item, kw) {
   const rawDate = item.bidClseDt || item.opengDt || item.rcptDocClseDt || item.endDt || item.opnDt || item.bfSpecRgstDt || item.rcptDt || item.bidNtceDt || '';
   const dlRaw = rawDate ? rawDate.slice(0, 16) : '';
@@ -548,7 +556,7 @@ function setLoading(on) {
 function showBanner(type, msg) {
   const b = document.getElementById('banner');
   const cfg = { ok: 'bg-emerald-900/40 border-emerald-700 text-emerald-300', warn: 'bg-yellow-900/40 border-yellow-700 text-yellow-300' }[type];
-  b.className = `mb-6 p-4 rounded-2xl border text-sm ${cfg}`;
+  b.className = `mb-4 md:mb-6 p-3 md:p-4 rounded-2xl border text-xs md:text-sm ${cfg}`;
   b.style.whiteSpace = 'pre-line';
   b.textContent = msg;
   b.classList.remove('hidden');
@@ -580,7 +588,7 @@ function filterByKpi(filter) {
 function renderKwTags() {
   const kws = [...new Set(DATA.flatMap(b => b.keywords || [b.kw]))].sort();
   document.getElementById('kwTags').innerHTML = kws.map(k =>
-    `<span onclick="toggleKw('${k}',this)" class="px-3 py-1 text-xs bg-slate-800 border border-slate-700 rounded-2xl cursor-pointer hover:bg-slate-700 text-slate-300 transition">${k}</span>`
+    `<span onclick="toggleKw('${k}',this)" class="px-2 md:px-3 py-1 text-xs bg-slate-800 border border-slate-700 rounded-2xl cursor-pointer hover:bg-slate-700 text-slate-300 transition">${k}</span>`
   ).join('');
 }
 
@@ -596,24 +604,16 @@ function isParticipating(b) {
 
 function renderCards() {
   let live = DATA.filter(b => b.dday >= 0);
-  
-  // KPI 필터
   if (kpiFilter === 'urgent') live = live.filter(b => b.dday <= 7 && b.track !== 'P');
   else if (kpiFilter === 'A') live = live.filter(b => b.track === 'A');
   else if (kpiFilter === 'B') live = live.filter(b => b.track === 'B');
   else if (kpiFilter === 'P') live = live.filter(b => b.track === 'P');
   
-  // 검색
   const searchKw = document.getElementById('searchInput')?.value.toLowerCase() || '';
   if (searchKw) live = live.filter(b => (b.title||'').toLowerCase().includes(searchKw) || (b.client||'').toLowerCase().includes(searchKw));
-  
-  // 키워드 필터
   if (selectedKw.length) live = live.filter(b => (b.keywords || [b.kw]).some(k => selectedKw.includes(k)));
-  
-  // 참가가능만
   if (document.getElementById('onlyEligible')?.checked) live = live.filter(b => b.industryStatus === 'match' || b.industryStatus === 'no_limit');
   
-  // 정렬
   const sortBy = document.getElementById('sortBy')?.value || 'deadline';
   live.sort((a, b) => {
     if (sortBy === 'deadline') return a.dday - b.dday;
@@ -626,10 +626,9 @@ function renderCards() {
     return 0;
   });
   
-  const empty = `<div class="mc rounded-3xl p-8 border border-slate-700 text-center text-slate-500 text-sm">공고 없음</div>`;
+  const empty = `<div class="mc rounded-2xl p-4 md:p-8 border border-slate-700 text-center text-slate-500 text-xs md:text-sm">공고 없음</div>`;
   const mk = arr => arr.length ? arr.map(cardHtml).join('') : empty;
   
-  // Track 분류가 정확히 뿌려지는 부분 (정상 확인 완료)
   document.getElementById('preSpec').innerHTML = mk(live.filter(b=>b.track==='P'));
   document.getElementById('trackA').innerHTML = mk(live.filter(b=>b.track==='A'));
   document.getElementById('trackB').innerHTML = mk(live.filter(b=>b.track==='B'));
@@ -651,20 +650,20 @@ function cardHtml(b) {
   } else if (participating) {
     pUI = `<span class="text-xs px-2 py-1 bg-red-900/40 text-red-300 rounded-xl font-bold">🔴 참여중</span>`;
   } else { pUI = ''; }
-  return `<div class="mc rounded-3xl p-4 md:p-5 border ${participating?'border-red-500/50':'border-slate-700'}">
-    <div class="flex justify-between items-start mb-3">
-      <div class="flex flex-wrap gap-1.5">
-        <span class="text-xs px-3 py-1 bg-${col}-900 text-${col}-400 rounded-2xl font-medium">${trackName}</span>
+  return `<div class="mc mc-mobile rounded-2xl p-2 md:p-5 border ${participating?'border-red-500/50':'border-slate-700'}">
+    <div class="flex justify-between items-start mb-2 md:mb-3">
+      <div class="flex flex-wrap gap-1 md:gap-1.5">
+        <span class="text-xs px-2 md:px-3 py-1 bg-${col}-900 text-${col}-400 rounded-xl md:rounded-2xl font-medium">${trackName}</span>
         <span class="text-xs px-2 py-1 bg-slate-700 text-slate-400 rounded-xl">${b.kw}</span>
         ${b.dday<=7 && b.track !== 'P'?'<span class="text-xs px-2 py-1 bg-red-900 text-red-400 rounded-xl font-bold">⚡긴급</span>':''}
       </div>
-      <span class="${dc} text-2xl font-bold shrink-0 ml-2">D-${b.dday}</span>
+      <span class="${dc} dday text-base md:text-2xl font-bold shrink-0 ml-1 md:ml-2">D-${b.dday}</span>
     </div>
-    <div class="mb-3"><p class="font-semibold text-sm leading-snug text-white lc2">${b.title}</p><p class="text-xs text-slate-400 mt-1">${b.client}</p></div>
-    <div class="flex items-center justify-between text-sm mb-3"><div><span class="text-xs text-slate-500">예상</span><span class="font-bold ml-1 text-white text-sm">${b.budget}</span></div>${pUI}</div>
-    <div class="mb-3">${indBadge}</div>
-    <a href="${b.url}" target="_blank" class="block w-full py-2 bg-slate-700/50 hover:bg-blue-600 rounded-xl text-xs font-semibold text-center text-slate-300 hover:text-white transition flex items-center justify-center gap-1.5"><i class="fas fa-external-link-alt"></i>공고 보기</a>
-    <div class="mt-2 text-xs text-slate-600"><i class="fas fa-clock mr-1"></i>${b.deadline}</div>
+    <div class="mb-2 md:mb-3"><p class="font-semibold text-xs md:text-sm leading-snug text-white lc2">${b.title}</p><p class="client-name text-xs text-slate-400 mt-1">${b.client}</p></div>
+    <div class="flex items-center justify-between text-sm mb-2 md:mb-3"><div><span class="text-xs text-slate-500">예상</span><span class="budget-amt font-bold ml-1 text-white text-xs md:text-sm">${b.budget}</span></div>${pUI}</div>
+    <div class="mb-2 md:mb-3">${indBadge}</div>
+    <a href="${b.url}" target="_blank" class="view-btn block w-full py-1.5 md:py-2 bg-slate-700/50 hover:bg-blue-600 rounded-xl text-xs font-semibold text-center text-slate-300 hover:text-white transition flex items-center justify-center gap-1.5"><i class="fas fa-external-link-alt"></i>공고 보기</a>
+    <div class="date-info mt-2 text-xs text-slate-600"><i class="fas fa-clock mr-1"></i>${b.deadline}</div>
   </div>`;
 }
 
@@ -688,12 +687,12 @@ function switchTab(t) {
   const tHist = document.getElementById('tabHist');
   if (t === 'dash') {
     dash.classList.remove('hidden'); hist.classList.add('hidden');
-    tDash.className = 'px-3 md:px-4 py-2 rounded-xl text-sm font-semibold bg-slate-700 text-white';
-    tHist.className = 'px-3 md:px-4 py-2 rounded-xl text-sm font-semibold text-slate-400';
+    tDash.className = 'px-2 md:px-4 py-2 rounded-xl text-xs md:text-sm font-semibold bg-slate-700 text-white';
+    tHist.className = 'px-2 md:px-4 py-2 rounded-xl text-xs md:text-sm font-semibold text-slate-400';
   } else {
     dash.classList.add('hidden'); hist.classList.remove('hidden');
-    tHist.className = 'px-3 md:px-4 py-2 rounded-xl text-sm font-semibold bg-slate-700 text-white';
-    tDash.className = 'px-3 md:px-4 py-2 rounded-xl text-sm font-semibold text-slate-400';
+    tHist.className = 'px-2 md:px-4 py-2 rounded-xl text-xs md:text-sm font-semibold bg-slate-700 text-white';
+    tDash.className = 'px-2 md:px-4 py-2 rounded-xl text-xs md:text-sm font-semibold text-slate-400';
     renderHistory();
   }
 }
