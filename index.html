@@ -498,10 +498,17 @@ async function fetchAll(forceRefresh) {
   loading = false; setLoading(false);
 }
 
+// [핵심 수정] 사전규격 날짜, 제목 완벽 파싱 및 필터링 이탈 방지
 function parseBid(item, kw) {
-  const dlRaw = (item.bidClseDt || item.opengDt || item.rcptDocClseDt || (item.bidNtceDt||'')+" 18:00").slice(0,16);
-  let dday = 99;
-  try { dday = Math.ceil((new Date(dlRaw) - new Date()) / 86400000); } catch {}
+  const rawDate = item.bidClseDt || item.opengDt || item.rcptDocClseDt || item.endDt || item.opnDt || item.bfSpecRgstDt || item.rcptDt || item.bidNtceDt || '';
+  const dlRaw = rawDate ? rawDate.slice(0, 16) : '';
+  
+  let dday = 99; 
+  if (dlRaw) {
+    const t = new Date(dlRaw.length === 10 ? dlRaw + " 18:00" : dlRaw).getTime();
+    if (!isNaN(t)) dday = Math.ceil((t - new Date().getTime()) / 86400000);
+  }
+  
   const fmtAmt = v => {
     try {
       const n = parseInt(String(v).replace(/,/g,''));
@@ -511,15 +518,20 @@ function parseBid(item, kw) {
       return n.toLocaleString()+'원';
     } catch { return v||'미정'; }
   };
-  const rawBudget = parseInt(String(item.presmptPrce || item.bdgtAmt || '0').replace(/,/g,'')) || 0;
+  
+  const rawBudget = parseInt(String(item.presmptPrce || item.bdgtAmt || item.asignBdgtAmt || '0').replace(/,/g,'')) || 0;
   const bidNo = item.bidNtceNo || item.rcptDocPblancNo || item.bfSpecRgstNo || '';
+  const title = item.bidNtceNm || item.rcptDocPblancNm || item.bfSpecRgstNm || item.prdctClsfcNoNm || '사전규격 공고';
+  const client = item.dminsttNm || item.ntceInsttNm || item.orderInsttNm || item.rlDminsttNm || '';
+  const noticeDt = (item.bidNtceDt || item.bfSpecRgstDt || item.rcptDt || '').slice(0,10);
+  
   const url = item.bidNtceUrl || item.linkUrl || (bidNo ? `https://www.g2b.go.kr:8101/ep/tbid/tbBidList.do?bidno=${bidNo}` : "https://www.g2b.go.kr");
+  
   return {
     id: `${bidNo}-${item.bidNtceOrd||'000'}-${item.isPreSpec?'P':'B'}`,
-    bidNo, title: item.bidNtceNm || item.rcptDocPblancNm || item.bfSpecRgstNm || '',
-    client: item.dminsttNm || item.ntceInsttNm || '',
-    deadline: dlRaw, notice: (item.bidNtceDt || '').slice(0,10),
-    dday, budget: fmtAmt(item.presmptPrce || item.bdgtAmt),
+    bidNo, title, client,
+    deadline: dlRaw || '날짜 미상', notice: noticeDt,
+    dday, budget: fmtAmt(item.presmptPrce || item.bdgtAmt || item.asignBdgtAmt),
     rawBudget, track: item.track || 'B',
     industryStatus: item.industryStatus || 'unknown',
     industryName: item.industryName || '',
@@ -616,6 +628,8 @@ function renderCards() {
   
   const empty = `<div class="mc rounded-3xl p-8 border border-slate-700 text-center text-slate-500 text-sm">공고 없음</div>`;
   const mk = arr => arr.length ? arr.map(cardHtml).join('') : empty;
+  
+  // Track 분류가 정확히 뿌려지는 부분 (정상 확인 완료)
   document.getElementById('preSpec').innerHTML = mk(live.filter(b=>b.track==='P'));
   document.getElementById('trackA').innerHTML = mk(live.filter(b=>b.track==='A'));
   document.getElementById('trackB').innerHTML = mk(live.filter(b=>b.track==='B'));
