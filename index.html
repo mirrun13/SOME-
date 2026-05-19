@@ -274,7 +274,7 @@ let calY = new Date().getFullYear(), calM = new Date().getMonth()+1, calOpen = f
 let kpiFilter = null;
 
 async function unlockDash() {
-  const input = document.getElementById('startupPw').value;
+const input = document.getElementById('startupPw')?.value || '';
   const errUI = document.getElementById('startupErr');
   if (!input) {
     errUI.textContent = '❌ 비밀번호를 입력해주세요.';
