@@ -536,9 +536,10 @@ function parseBid(item, kw) {
   const client = item.dminsttNm || item.ntceInsttNm || item.orderInsttNm || item.rlDminsttNm || '';
   const noticeDt = (item.bidNtceDt || item.bfSpecRgstDt || item.rcptDt || '').slice(0,10);
   
-  const isPreSpec = item.isPreSpec || item.track === 'P';
+ const isPreSpec = item.isPreSpec || item.track === 'P';
+  const preSpecNo = item.bfSpecRgstNo || bidNo;
   const url = item.bidNtceUrl || item.linkUrl || (isPreSpec
-    ? "https://www.g2b.go.kr"
+    ? `https://www.g2b.go.kr:8081/ep/preparation/prestd/preStdDtl.do?preStdRegNo=${preSpecNo}`
     : (bidNo ? `https://www.g2b.go.kr:8101/ep/tbid/tbBidList.do?bidno=${bidNo}` : "https://www.g2b.go.kr"));
   
   return {
