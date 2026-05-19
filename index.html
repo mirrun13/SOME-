@@ -56,17 +56,17 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
       <h2 class="text-2xl font-bold text-white mb-6">시스템 보안 설정</h2>
       
       <div class="mb-6 pb-6 border-b border-slate-700">
-        <p class="text-sm text-blue-400 font-bold mb-2"><i class="fas fa-server mr-1"></i> 관리자 암호 변경 (서버용)</p>
+        <p class="text-sm text-blue-400 font-bold mb-2"><i class="fas fa-server mr-1"></i> 관리자 암호 변경</p>
         <input type="password" id="oldPw" placeholder="현재 관리자 비밀번호" class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white mb-2 focus:outline-none focus:border-blue-500">
-        <input type="password" id="newPw" placeholder="새 관리자 비밀번호" class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white mb-2 focus:outline-none focus:border-blue-500">
-        <button onclick="doChangePw()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 rounded-xl text-white font-bold transition text-sm">서버 암호 변경</button>
+        <input type="password" id="newPw" placeholder="새 관리자 비밀번호 (4자 이상)" class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white mb-2 focus:outline-none focus:border-blue-500">
+        <button onclick="doChangePw()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 rounded-xl text-white font-bold transition text-sm">관리자 비밀번호 변경</button>
       </div>
 
       <div class="mb-4" id="guestPwControlSection" style="display: none;">
-        <p class="text-sm text-emerald-400 font-bold mb-2"><i class="fas fa-door-lock mr-1"></i> 직원 입장용 암호 변경</p>
+        <p class="text-sm text-emerald-400 font-bold mb-2"><i class="fas fa-door-open mr-1"></i> 직원 입장용 암호 변경</p>
         <input type="password" id="confirmAdminPw" placeholder="현재 관리자 비밀번호 (확인용)" class="w-full px-4 py-2 bg-slate-950 border border-red-900/50 rounded-xl text-red-300 mb-2 focus:outline-none focus:border-red-500 text-sm placeholder-red-900/50">
-        <input type="password" id="newGuestPw" placeholder="새로운 직원 입장용 비밀번호" class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white mb-2 focus:outline-none focus:border-emerald-500">
-        <button onclick="changeGuestPw()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-white font-bold transition text-sm">입장 암호 적용</button>
+        <input type="password" id="newGuestPw" placeholder="새로운 직원 입장용 비밀번호 (4자 이상)" class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white mb-2 focus:outline-none focus:border-emerald-500">
+        <button onclick="changeGuestPw()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-white font-bold transition text-sm">직원 입장 암호 적용 (모든 사용자)</button>
       </div>
 
       <div id="pwErr" class="text-red-400 text-sm mb-3 hidden"></div>
@@ -243,7 +243,9 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
     </div>
   </div>
 
-</div> <script>
+</div>
+
+<script>
 const API_BASE = "https://narajangter-api-test.vercel.app/api";
 
 let DATA = [], HISTORY = [], selectedKw = [];
@@ -253,11 +255,8 @@ let currentTab = 'dash';
 let token = localStorage.getItem('some_token') || '';
 let calY = new Date().getFullYear(), calM = new Date().getMonth()+1, calOpen = false;
 
-// 🌟 강력해진 잠금 해제 시스템
-function unlockDash() {
+async function unlockDash() {
   const input = document.getElementById('startupPw').value;
-  const guestPw = localStorage.getItem('some_guest_pw') || 'some'; 
-  const ADMIN_MASTER_PW = "mir19790805"; 
   const errUI = document.getElementById('startupErr');
 
   if (!input) {
@@ -266,16 +265,38 @@ function unlockDash() {
     return;
   }
   
-  if (input === guestPw || input === ADMIN_MASTER_PW) {
-    document.getElementById('startupLock').style.display = 'none';
-    document.getElementById('mainWrap').style.display = 'block';
-    document.getElementById('bodyWrap').classList.remove('overflow-hidden');
-    fetchAll(); 
-  } else {
-    errUI.textContent = '❌ 비밀번호가 일치하지 않습니다.';
+  try {
+    const r = await fetch(`${API_BASE}/auth?action=check-access`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: input })
+    });
+    const d = await r.json();
+    
+    if (d.success) {
+      if (d.access === 'admin' && d.token) {
+        token = d.token;
+        localStorage.setItem('some_token', token);
+        setAdmin(true);
+      }
+      
+      document.getElementById('startupLock').style.display = 'none';
+      document.getElementById('mainWrap').style.display = 'block';
+      document.getElementById('bodyWrap').classList.remove('overflow-hidden');
+      fetchAll();
+      
+      if (d.access === 'admin') {
+        setTimeout(() => showBanner('ok', '✅ 관리자로 입장하셨습니다.'), 500);
+      }
+    } else {
+      errUI.textContent = '❌ ' + (d.error || '비밀번호가 일치하지 않습니다.');
+      errUI.classList.remove('hidden');
+      document.getElementById('startupPw').value = '';
+      document.getElementById('startupPw').focus();
+    }
+  } catch (e) {
+    errUI.textContent = '❌ 서버 오류: ' + e.message;
     errUI.classList.remove('hidden');
-    document.getElementById('startupPw').value = '';
-    document.getElementById('startupPw').focus();
   }
 }
 
@@ -298,22 +319,40 @@ async function changeGuestPw() {
     err.classList.remove('hidden');
     return;
   }
+  if (newPw.length < 4) {
+    err.textContent = '비밀번호는 4자 이상이어야 합니다.';
+    err.classList.remove('hidden');
+    return;
+  }
   
   try {
-    const r = await fetch(`${API_BASE}/auth?action=login`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+    const loginR = await fetch(`${API_BASE}/auth?action=login`, {
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: confirmPw })
+    });
+    const loginD = await loginR.json();
+    
+    if (!loginD.success) {
+      err.textContent = '❌ 관리자 비밀번호가 일치하지 않습니다.';
+      err.classList.remove('hidden');
+      return;
+    }
+    
+    const r = await fetch(`${API_BASE}/auth?action=change-guest-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: loginD.token, newPassword: newPw })
     });
     const d = await r.json();
     
     if (d.success) {
-      localStorage.setItem('some_guest_pw', newPw);
-      ok.textContent = '✅ 직원 입장용 비밀번호가 변경되었습니다.';
+      ok.textContent = '✅ ' + d.message + ' (모든 사용자에게 적용됨)';
       ok.classList.remove('hidden');
       document.getElementById('confirmAdminPw').value = '';
       document.getElementById('newGuestPw').value = '';
     } else {
-      err.textContent = '❌ 관리자 비밀번호가 일치하지 않습니다.';
+      err.textContent = '❌ ' + (d.error || '변경 실패');
       err.classList.remove('hidden');
     }
   } catch (e) {
@@ -335,7 +374,6 @@ async function verifyAuth() {
   } catch (e) { setAdmin(false); }
 }
 
-// 🌟 교체됨: 관리자 권한 상태에 따라 '직원 암호 변경 칸' 자체를 온/오프시킴
 function setAdmin(on) {
   isAdmin = on;
   const guestPwSection = document.getElementById('guestPwControlSection');
@@ -545,7 +583,6 @@ function toggleKw(kw, el) {
   renderCards();
 }
 
-// 히스토리 체크 로직
 function isParticipating(b) {
   return HISTORY.some(h => h.bidNtceNo && b.bidNo && h.bidNtceNo === b.bidNo);
 }
@@ -825,7 +862,6 @@ function showDay(day) {
       }).join('');
 }
 
-// 시작 시 자물쇠 대기
 window.onload = async () => { 
   await verifyAuth();
   buildCal();
