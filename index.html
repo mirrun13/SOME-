@@ -15,18 +15,25 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
 .lc2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .spin{animation:sp 1s linear infinite;}
 @keyframes sp{to{transform:rotate(360deg);}}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:100;display:flex;align-items:center;justify-content:center;}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:100;display:flex;align-items:center;justify-content:center;padding:1rem;}
+.kpi-card{cursor:pointer;user-select:none;}
+.kpi-card.active{outline:3px solid #3b82f6;outline-offset:-3px;transform:scale(1.02);}
+@media (max-width: 768px) {
+  .kn{font-size:28px;}
+  .filter-mobile{flex-direction:column;align-items:stretch;}
+  .filter-mobile > div{width:100%;}
+}
 </style>
 </head>
 
 <body class="bg-slate-950 text-slate-200 min-h-screen overflow-hidden" id="bodyWrap">
 
-<div id="startupLock" class="fixed inset-0 bg-slate-950 z-[9999] flex flex-col items-center justify-center">
-  <div class="bg-slate-900 rounded-3xl p-10 w-[400px] border border-slate-700 text-center shadow-2xl">
+<div id="startupLock" class="fixed inset-0 bg-slate-950 z-[9999] flex flex-col items-center justify-center p-4">
+  <div class="bg-slate-900 rounded-3xl p-8 md:p-10 w-full max-w-[400px] border border-slate-700 text-center shadow-2xl">
     <i class="fas fa-shield-alt text-5xl text-blue-500 mb-6"></i>
     <h2 class="text-3xl font-bold text-white mb-2">SOME 대시보드</h2>
     <p class="text-slate-400 text-sm mb-8">안전한 열람을 위해 비밀번호를 입력해주세요.</p>
-    <input type="password" id="startupPw" placeholder="비밀번호" 
+    <input type="password" id="startupPw" autocomplete="off"
       class="w-full px-4 py-4 bg-slate-800 border border-slate-700 rounded-2xl text-white mb-4 focus:outline-none focus:border-blue-500 text-center tracking-widest text-lg"
       onkeydown="if(event.key==='Enter') unlockDash()">
     <div id="startupErr" class="text-red-400 text-sm mb-4 hidden font-bold">❌ 비밀번호가 일치하지 않습니다.</div>
@@ -37,10 +44,10 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
 <div id="mainWrap" style="display: none;">
 
   <div id="loginModal" class="modal hidden">
-    <div class="bg-slate-900 rounded-3xl p-8 w-96 border border-slate-700">
+    <div class="bg-slate-900 rounded-3xl p-6 md:p-8 w-full max-w-[400px] border border-slate-700">
       <h2 class="text-2xl font-bold text-white mb-2">관리자 로그인</h2>
       <p class="text-slate-400 text-sm mb-6">관리자 기능을 사용하려면 로그인하세요</p>
-      <input type="password" id="loginPw" placeholder="비밀번호" 
+      <input type="password" id="loginPw" autocomplete="off"
         class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-2xl text-white mb-3 focus:outline-none focus:border-blue-500"
         onkeydown="if(event.key==='Enter')doLogin()">
       <div id="loginErr" class="text-red-400 text-sm mb-3 hidden"></div>
@@ -52,23 +59,20 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
   </div>
 
   <div id="pwModal" class="modal hidden">
-    <div class="bg-slate-900 rounded-3xl p-8 w-96 border border-slate-700">
+    <div class="bg-slate-900 rounded-3xl p-6 md:p-8 w-full max-w-[400px] border border-slate-700">
       <h2 class="text-2xl font-bold text-white mb-6">시스템 보안 설정</h2>
-      
       <div class="mb-6 pb-6 border-b border-slate-700">
         <p class="text-sm text-blue-400 font-bold mb-2"><i class="fas fa-server mr-1"></i> 관리자 암호 변경</p>
-        <input type="password" id="oldPw" placeholder="현재 관리자 비밀번호" class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white mb-2 focus:outline-none focus:border-blue-500">
-        <input type="password" id="newPw" placeholder="새 관리자 비밀번호 (4자 이상)" class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white mb-2 focus:outline-none focus:border-blue-500">
+        <input type="password" id="oldPw" autocomplete="off" placeholder="현재 관리자 비밀번호" class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white mb-2 focus:outline-none focus:border-blue-500">
+        <input type="password" id="newPw" autocomplete="off" placeholder="새 관리자 비밀번호 (4자 이상)" class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white mb-2 focus:outline-none focus:border-blue-500">
         <button onclick="doChangePw()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 rounded-xl text-white font-bold transition text-sm">관리자 비밀번호 변경</button>
       </div>
-
       <div class="mb-4" id="guestPwControlSection" style="display: none;">
         <p class="text-sm text-emerald-400 font-bold mb-2"><i class="fas fa-door-open mr-1"></i> 직원 입장용 암호 변경</p>
-        <input type="password" id="confirmAdminPw" placeholder="현재 관리자 비밀번호 (확인용)" class="w-full px-4 py-2 bg-slate-950 border border-red-900/50 rounded-xl text-red-300 mb-2 focus:outline-none focus:border-red-500 text-sm placeholder-red-900/50">
-        <input type="password" id="newGuestPw" placeholder="새로운 직원 입장용 비밀번호 (4자 이상)" class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white mb-2 focus:outline-none focus:border-emerald-500">
+        <input type="password" id="confirmAdminPw" autocomplete="off" placeholder="현재 관리자 비밀번호 (확인용)" class="w-full px-4 py-2 bg-slate-950 border border-red-900/50 rounded-xl text-red-300 mb-2 focus:outline-none focus:border-red-500 text-sm placeholder-red-900/50">
+        <input type="password" id="newGuestPw" autocomplete="off" placeholder="새로운 직원 입장용 비밀번호 (4자 이상)" class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white mb-2 focus:outline-none focus:border-emerald-500">
         <button onclick="changeGuestPw()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-white font-bold transition text-sm">직원 입장 암호 적용 (모든 사용자)</button>
       </div>
-
       <div id="pwErr" class="text-red-400 text-sm mb-3 hidden"></div>
       <div id="pwOk" class="text-emerald-400 text-sm mb-3 hidden"></div>
       <button onclick="closePwModal()" class="w-full py-3 bg-slate-700 hover:bg-slate-600 rounded-2xl text-white transition font-bold mt-2">닫기</button>
@@ -76,7 +80,7 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
   </div>
 
   <div id="histModal" class="modal hidden">
-    <div class="bg-slate-900 rounded-3xl p-8 w-[480px] border border-slate-700 max-h-[90vh] overflow-y-auto">
+    <div class="bg-slate-900 rounded-3xl p-6 md:p-8 w-full max-w-[480px] border border-slate-700 max-h-[90vh] overflow-y-auto">
       <h2 class="text-2xl font-bold text-white mb-6" id="histModalTitle">참여 정보 입력</h2>
       <input type="hidden" id="histId">
       <div class="mb-3">
@@ -93,40 +97,36 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
       </div>
       <div class="mb-3">
         <label class="text-xs text-slate-400 block mb-1">메모</label>
-        <textarea id="histMemo" rows="4" placeholder="제안 내용, 견적, 코멘트 등..." 
-          class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm"></textarea>
+        <textarea id="histMemo" rows="4" placeholder="제안 내용, 견적, 코멘트 등..." class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm"></textarea>
       </div>
       <div class="mb-3">
-        <label class="text-xs text-slate-400 block mb-1">첨부파일 URL (Google Drive, Dropbox 등)</label>
+        <label class="text-xs text-slate-400 block mb-1">첨부파일 URL</label>
         <input id="histAttachUrl" placeholder="https://..." class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm mb-2">
-        <input id="histAttachName" placeholder="파일명 (예: 제안서_v1.pdf)" class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm">
+        <input id="histAttachName" placeholder="파일명" class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm">
       </div>
       <div class="flex gap-2 mt-6">
         <button onclick="saveHistory()" class="flex-1 py-3 bg-blue-600 hover:bg-blue-500 rounded-2xl text-white font-bold transition">저장</button>
-        <button id="histDelBtn" onclick="removeFromHistory()" class="px-4 py-3 bg-red-900/60 hover:bg-red-700 text-red-300 rounded-2xl transition hidden">
-          <i class="fas fa-trash"></i>
-        </button>
+        <button id="histDelBtn" onclick="removeFromHistory()" class="px-4 py-3 bg-red-900/60 hover:bg-red-700 text-red-300 rounded-2xl transition hidden"><i class="fas fa-trash"></i></button>
         <button onclick="closeHistModal()" class="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-2xl text-white transition">취소</button>
       </div>
     </div>
   </div>
 
-  <div class="max-w-screen-xl mx-auto px-6 py-10">
+  <div class="max-w-screen-xl mx-auto px-4 md:px-6 py-6 md:py-10">
 
-    <div class="flex items-end justify-between mb-10 flex-wrap gap-4">
+    <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-6 md:mb-10 gap-4">
       <div>
-        <h1 class="text-4xl font-bold tracking-tight text-white">SOME 입찰계획</h1>
+        <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-white">SOME 입찰계획</h1>
         <p class="text-slate-400 mt-2 text-sm" id="subtitle">나라장터 실시간 연동 · 로딩 전</p>
       </div>
-      <div class="flex gap-2 items-center">
-        <div class="flex bg-slate-800 rounded-2xl p-1 mr-2">
-          <button id="tabDash" onclick="switchTab('dash')" class="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-700 text-white">대시보드</button>
-          <button id="tabHist" onclick="switchTab('hist')" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-400">히스토리</button>
+      <div class="flex gap-2 items-center flex-wrap">
+        <div class="flex bg-slate-800 rounded-2xl p-1">
+          <button id="tabDash" onclick="switchTab('dash')" class="px-3 md:px-4 py-2 rounded-xl text-sm font-semibold bg-slate-700 text-white">대시보드</button>
+          <button id="tabHist" onclick="switchTab('hist')" class="px-3 md:px-4 py-2 rounded-xl text-sm font-semibold text-slate-400">히스토리</button>
         </div>
-        <button onclick="fetchAll()" id="searchBtn"
-          class="px-5 py-3 bg-blue-600 hover:bg-blue-500 active:scale-95 text-sm font-bold text-white rounded-2xl flex items-center gap-2 transition shadow-lg shadow-blue-900/40">
-          <i class="fas fa-magnifying-glass text-xs" id="searchIco"></i>
-          <span id="searchTxt">검색</span>
+        <button onclick="fetchAll(true)" id="searchBtn" class="px-4 md:px-5 py-3 bg-blue-600 hover:bg-blue-500 active:scale-95 text-sm font-bold text-white rounded-2xl flex items-center gap-2 transition shadow-lg shadow-blue-900/40">
+          <i class="fas fa-rotate text-xs" id="searchIco"></i>
+          <span id="searchTxt">업데이트</span>
         </button>
         <button id="adminBtn" onclick="adminAction()" class="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-sm font-semibold text-slate-300 rounded-2xl flex items-center gap-2 transition">
           <i class="fas fa-user-shield text-xs"></i>
@@ -138,29 +138,44 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
     <div id="banner" class="hidden mb-6 p-4 rounded-2xl border text-sm flex items-start gap-3"></div>
 
     <div id="dashView">
-      <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-        <div class="mc p-5 rounded-3xl border border-slate-700"><div class="text-xs text-slate-400 mb-1">전체 진행중</div><div class="kn" id="k1">—</div></div>
-        <div class="mc p-5 rounded-3xl border-l-4 border-red-500"><div class="text-xs text-red-400 mb-1">긴급 (D-7이하)</div><div class="kn text-red-400" id="k2">—</div></div>
-        <div class="mc p-5 rounded-3xl border-l-4 border-purple-500"><div class="text-xs text-purple-400 mb-1">사전규격</div><div class="kn text-purple-400" id="k5">—</div></div>
-        <div class="mc p-5 rounded-3xl border-l-4 border-blue-500"><div class="text-xs text-blue-400 mb-1">Track A (제안)</div><div class="kn text-blue-400" id="k3">—</div></div>
-        <div class="mc p-5 rounded-3xl border-l-4 border-emerald-500"><div class="text-xs text-emerald-400 mb-1">Track B (투찰)</div><div class="kn text-emerald-400" id="k4">—</div></div>
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4 mb-6 md:mb-8">
+        <div class="mc kpi-card p-3 md:p-5 rounded-3xl border border-slate-700" data-filter="all" onclick="filterByKpi('all')">
+          <div class="text-xs text-slate-400 mb-1">전체 진행중</div>
+          <div class="kn" id="k1">—</div>
+        </div>
+        <div class="mc kpi-card p-3 md:p-5 rounded-3xl border-l-4 border-red-500" data-filter="urgent" onclick="filterByKpi('urgent')">
+          <div class="text-xs text-red-400 mb-1">긴급 (D-7이하)</div>
+          <div class="kn text-red-400" id="k2">—</div>
+        </div>
+        <div class="mc kpi-card p-3 md:p-5 rounded-3xl border-l-4 border-purple-500" data-filter="P" onclick="filterByKpi('P')">
+          <div class="text-xs text-purple-400 mb-1">사전규격</div>
+          <div class="kn text-purple-400" id="k5">—</div>
+        </div>
+        <div class="mc kpi-card p-3 md:p-5 rounded-3xl border-l-4 border-blue-500" data-filter="A" onclick="filterByKpi('A')">
+          <div class="text-xs text-blue-400 mb-1">Track A (제안)</div>
+          <div class="kn text-blue-400" id="k3">—</div>
+        </div>
+        <div class="mc kpi-card p-3 md:p-5 rounded-3xl border-l-4 border-emerald-500" data-filter="B" onclick="filterByKpi('B')">
+          <div class="text-xs text-emerald-400 mb-1">Track B (투찰)</div>
+          <div class="kn text-emerald-400" id="k4">—</div>
+        </div>
       </div>
 
-      <div class="mb-6 flex flex-wrap gap-3 items-center">
+      <div class="mb-4 md:mb-6 filter-mobile flex flex-wrap gap-3 items-start">
         <div class="flex-1 min-w-[200px]">
           <p class="text-xs text-slate-500 mb-2 px-1">키워드 필터</p>
           <div class="flex flex-wrap gap-2" id="kwTags"></div>
         </div>
-        <div>
+        <div class="w-full md:w-auto">
           <p class="text-xs text-slate-500 mb-2 px-1">정렬</p>
-          <select id="sortBy" onchange="renderCards()" class="px-4 py-2 bg-slate-800 border border-slate-700 rounded-2xl text-sm text-white focus:outline-none">
+          <select id="sortBy" onchange="renderCards()" class="w-full md:w-auto px-4 py-2 bg-slate-800 border border-slate-700 rounded-2xl text-sm text-white focus:outline-none">
             <option value="deadline">마감일 가까운 순</option>
             <option value="eligible">참가가능 우선</option>
             <option value="budget">예산 큰 순</option>
             <option value="latest">최신 공고 순</option>
           </select>
         </div>
-        <div>
+        <div class="w-full md:w-auto">
           <p class="text-xs text-slate-500 mb-2 px-1">필터</p>
           <label class="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 rounded-2xl text-sm text-white cursor-pointer">
             <input type="checkbox" id="onlyEligible" onchange="renderCards()" class="accent-blue-500">
@@ -169,7 +184,16 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
         </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="mb-6">
+        <p class="text-xs text-slate-500 mb-2 px-1">검색</p>
+        <div class="relative">
+          <i class="fas fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+          <input id="searchInput" oninput="renderCards()" placeholder="공고명 또는 발주처로 검색..."
+            class="w-full pl-11 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-2xl text-sm text-white focus:outline-none focus:border-blue-500">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         <div>
           <h2 class="text-base font-bold mb-4 flex items-center gap-2 text-purple-400">
             <span class="w-2 h-2 bg-purple-500 rounded-full"></span>사전규격
@@ -198,16 +222,14 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
     </div>
 
     <div id="histView" class="hidden">
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div class="mc p-5 rounded-3xl border border-slate-700"><div class="text-xs text-slate-400 mb-1">전체 참여</div><div class="kn" id="h1">—</div></div>
-        <div class="mc p-5 rounded-3xl border-l-4 border-emerald-500"><div class="text-xs text-emerald-400 mb-1">당선</div><div class="kn text-emerald-400" id="h2">—</div></div>
-        <div class="mc p-5 rounded-3xl border-l-4 border-red-500"><div class="text-xs text-red-400 mb-1">낙선</div><div class="kn text-red-400" id="h3">—</div></div>
-        <div class="mc p-5 rounded-3xl border-l-4 border-yellow-500"><div class="text-xs text-yellow-400 mb-1">대기 중</div><div class="kn text-yellow-400" id="h4">—</div></div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-6 md:mb-8">
+        <div class="mc p-3 md:p-5 rounded-3xl border border-slate-700"><div class="text-xs text-slate-400 mb-1">전체 참여</div><div class="kn" id="h1">—</div></div>
+        <div class="mc p-3 md:p-5 rounded-3xl border-l-4 border-emerald-500"><div class="text-xs text-emerald-400 mb-1">당선</div><div class="kn text-emerald-400" id="h2">—</div></div>
+        <div class="mc p-3 md:p-5 rounded-3xl border-l-4 border-red-500"><div class="text-xs text-red-400 mb-1">낙선</div><div class="kn text-red-400" id="h3">—</div></div>
+        <div class="mc p-3 md:p-5 rounded-3xl border-l-4 border-yellow-500"><div class="text-xs text-yellow-400 mb-1">대기 중</div><div class="kn text-yellow-400" id="h4">—</div></div>
       </div>
-
-      <div class="mb-6 flex flex-wrap gap-3 items-center">
-        <input id="histSearch" placeholder="검색 (공고명, 발주처...)" oninput="renderHistory()"
-          class="flex-1 min-w-[200px] px-4 py-2 bg-slate-800 border border-slate-700 rounded-2xl text-sm text-white focus:outline-none focus:border-blue-500">
+      <div class="mb-6 flex flex-col md:flex-row gap-3">
+        <input id="histSearch" placeholder="검색 (공고명, 발주처...)" oninput="renderHistory()" class="flex-1 px-4 py-2 bg-slate-800 border border-slate-700 rounded-2xl text-sm text-white focus:outline-none focus:border-blue-500">
         <select id="histFilter" onchange="renderHistory()" class="px-4 py-2 bg-slate-800 border border-slate-700 rounded-2xl text-sm text-white focus:outline-none">
           <option value="">전체 결과</option>
           <option value="won">당선</option>
@@ -215,19 +237,15 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
           <option value="pending">대기 중</option>
         </select>
       </div>
-
       <div id="histList" class="space-y-3"></div>
     </div>
-
   </div>
 
-  <div class="fixed bottom-8 right-8 z-50">
-    <button id="calIcon" onclick="toggleCal()" 
-      class="bg-blue-600 hover:bg-blue-500 text-white rounded-2xl shadow-xl shadow-blue-900/40 p-4 flex flex-col items-center justify-center w-20 h-20 transition-all hover:scale-105">
-      <div class="text-[10px] uppercase tracking-wider font-bold opacity-80" id="cy">2026</div>
-      <div class="text-2xl font-extrabold" id="cm">05</div>
+  <div class="fixed bottom-6 right-6 z-50">
+    <button id="calIcon" onclick="toggleCal()" class="bg-blue-600 hover:bg-blue-500 text-white rounded-2xl shadow-xl shadow-blue-900/40 p-4 flex flex-col items-center justify-center w-16 h-16 md:w-20 md:h-20 transition-all hover:scale-105">
+      <div class="text-[9px] md:text-[10px] uppercase tracking-wider font-bold opacity-80" id="cy">2026</div>
+      <div class="text-xl md:text-2xl font-extrabold" id="cm">05</div>
     </button>
-    
     <div id="calPanel" class="hidden absolute bottom-0 right-0 bg-slate-900 rounded-3xl shadow-2xl border border-slate-700 p-6 w-80">
       <div class="flex justify-between items-center mb-4">
         <button onclick="prevM()" class="w-8 h-8 text-2xl text-slate-400 hover:text-white flex items-center justify-center">&lt;</button>
@@ -242,7 +260,6 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
       <div class="mt-3 text-center"><button onclick="toggleCal()" class="text-xs text-slate-400 hover:text-white">닫기</button></div>
     </div>
   </div>
-
 </div>
 
 <script>
@@ -254,37 +271,32 @@ let isAdmin = false;
 let currentTab = 'dash';
 let token = localStorage.getItem('some_token') || '';
 let calY = new Date().getFullYear(), calM = new Date().getMonth()+1, calOpen = false;
+let kpiFilter = null;
 
 async function unlockDash() {
   const input = document.getElementById('startupPw').value;
   const errUI = document.getElementById('startupErr');
-
   if (!input) {
     errUI.textContent = '❌ 비밀번호를 입력해주세요.';
     errUI.classList.remove('hidden');
     return;
   }
-  
   try {
     const r = await fetch(`${API_BASE}/auth?action=check-access`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: input })
     });
     const d = await r.json();
-    
     if (d.success) {
       if (d.access === 'admin' && d.token) {
         token = d.token;
         localStorage.setItem('some_token', token);
         setAdmin(true);
       }
-      
       document.getElementById('startupLock').style.display = 'none';
       document.getElementById('mainWrap').style.display = 'block';
       document.getElementById('bodyWrap').classList.remove('overflow-hidden');
       fetchAll();
-      
       if (d.access === 'admin') {
         setTimeout(() => showBanner('ok', '✅ 관리자로 입장하셨습니다.'), 500);
       }
@@ -305,49 +317,23 @@ async function changeGuestPw() {
   const newPw = document.getElementById('newGuestPw').value;
   const err = document.getElementById('pwErr');
   const ok = document.getElementById('pwOk');
-  
-  err.classList.add('hidden'); 
-  ok.classList.add('hidden');
-  
-  if (!confirmPw) {
-    err.textContent = '보안을 위해 관리자 비밀번호를 먼저 입력해주세요.';
-    err.classList.remove('hidden');
-    return;
-  }
-  if (!newPw) {
-    err.textContent = '변경할 직원 입장용 비밀번호를 입력해주세요.';
-    err.classList.remove('hidden');
-    return;
-  }
-  if (newPw.length < 4) {
-    err.textContent = '비밀번호는 4자 이상이어야 합니다.';
-    err.classList.remove('hidden');
-    return;
-  }
-  
+  err.classList.add('hidden'); ok.classList.add('hidden');
+  if (!confirmPw) { err.textContent = '관리자 비밀번호를 입력해주세요.'; err.classList.remove('hidden'); return; }
+  if (!newPw || newPw.length < 4) { err.textContent = '비밀번호는 4자 이상이어야 합니다.'; err.classList.remove('hidden'); return; }
   try {
     const loginR = await fetch(`${API_BASE}/auth?action=login`, {
-      method: 'POST', 
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: confirmPw })
     });
     const loginD = await loginR.json();
-    
-    if (!loginD.success) {
-      err.textContent = '❌ 관리자 비밀번호가 일치하지 않습니다.';
-      err.classList.remove('hidden');
-      return;
-    }
-    
+    if (!loginD.success) { err.textContent = '❌ 관리자 비밀번호가 일치하지 않습니다.'; err.classList.remove('hidden'); return; }
     const r = await fetch(`${API_BASE}/auth?action=change-guest-password`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token: loginD.token, newPassword: newPw })
     });
     const d = await r.json();
-    
     if (d.success) {
-      ok.textContent = '✅ ' + d.message + ' (모든 사용자에게 적용됨)';
+      ok.textContent = '✅ ' + d.message;
       ok.classList.remove('hidden');
       document.getElementById('confirmAdminPw').value = '';
       document.getElementById('newGuestPw').value = '';
@@ -365,8 +351,7 @@ async function verifyAuth() {
   if (!token) { setAdmin(false); return; }
   try {
     const r = await fetch(`${API_BASE}/auth?action=verify`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token })
     });
     const d = await r.json();
@@ -376,10 +361,8 @@ async function verifyAuth() {
 
 function setAdmin(on) {
   isAdmin = on;
-  const guestPwSection = document.getElementById('guestPwControlSection');
-  if (guestPwSection) {
-    guestPwSection.style.display = on ? 'block' : 'none';
-  }
+  const gs = document.getElementById('guestPwControlSection');
+  if (gs) gs.style.display = on ? 'block' : 'none';
   if (document.getElementById('mainWrap').style.display !== 'none') {
     document.getElementById('adminBtnTxt').textContent = on ? '관리자 메뉴' : '관리자';
     if (currentTab === 'dash') renderCards();
@@ -392,7 +375,7 @@ function adminAction() {
     document.getElementById('loginModal').classList.remove('hidden');
     setTimeout(() => document.getElementById('loginPw').focus(), 100);
   } else {
-    if (confirm('관리자 메뉴:\n[확인] 보안 설정(비밀번호 변경)\n[취소] 로그아웃')) {
+    if (confirm('관리자 메뉴:\n[확인] 보안 설정\n[취소] 로그아웃')) {
       document.getElementById('pwModal').classList.remove('hidden');
     } else { doLogout(); }
   }
@@ -448,8 +431,7 @@ async function doChangePw() {
   const newPw = document.getElementById('newPw').value;
   const err = document.getElementById('pwErr');
   const ok = document.getElementById('pwOk');
-  err.classList.add('hidden');
-  ok.classList.add('hidden');
+  err.classList.add('hidden'); ok.classList.add('hidden');
   try {
     const r = await fetch(`${API_BASE}/auth?action=change-password`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -478,11 +460,12 @@ function closePwModal() {
   document.getElementById('pwOk').classList.add('hidden');
 }
 
-async function fetchAll() {
+async function fetchAll(forceRefresh) {
   if (loading) return;
   loading = true; setLoading(true); hideBanner();
   try {
-    const r = await fetch(`${API_BASE}/data`);
+    const url = forceRefresh ? `${API_BASE}/data?refresh=true` : `${API_BASE}/data`;
+    const r = await fetch(url);
     if (!r.ok) throw new Error('서버 응답 오류 (' + r.status + ')');
     const data = await r.json();
     if (!data.success || !data.items) throw new Error('데이터를 불러올 수 없습니다');
@@ -492,7 +475,7 @@ async function fetchAll() {
       const kw = (item.matchedKeywords && item.matchedKeywords[0]) || '기타';
       const b = parseBid(item, kw);
       if (!b.title) continue;
-      const dupKey = `${b.title}-${b.client}`;
+      const dupKey = `${b.title}-${b.client}-${b.track}`;
       if (seen.has(dupKey)) continue;
       seen.add(dupKey);
       results.push(b);
@@ -504,12 +487,13 @@ async function fetchAll() {
     } else {
       updateKPI(); renderKwTags(); renderCards(); buildCal();
       const now = new Date();
-      document.getElementById('subtitle').textContent = `나라장터 실시간 연동 · ${now.getMonth()+1}월 ${now.getDate()}일 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} 업데이트`;
-      showBanner('ok', `✅ 총 ${DATA.filter(b=>b.dday>=0).length}건의 진행중 공고를 불러왔습니다.`);
+      const cacheInfo = data.cached ? ` (캐시 ${Math.floor(data.cacheAge/60)}분 전)` : ' (실시간)';
+      document.getElementById('subtitle').textContent = `나라장터 연동 · ${now.getMonth()+1}월 ${now.getDate()}일 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}${cacheInfo}`;
+      showBanner('ok', `✅ 총 ${DATA.filter(b=>b.dday>=0).length}건 (사전규격 ${data.preSpecCount||0}건 포함)`);
     }
   } catch (e) {
     console.error(e);
-    showBanner('warn', '⚠️ 오류: ' + e.message);
+    showBanner('warn', '⚠️ 오류: ' + e.message + '\n(API 일일 한도 초과 가능성, 0시에 리셋)');
   }
   loading = false; setLoading(false);
 }
@@ -528,15 +512,13 @@ function parseBid(item, kw) {
     } catch { return v||'미정'; }
   };
   const rawBudget = parseInt(String(item.presmptPrce || item.bdgtAmt || '0').replace(/,/g,'')) || 0;
-  const bidNo = item.bidNtceNo || item.rcptDocPblancNo || '';
+  const bidNo = item.bidNtceNo || item.rcptDocPblancNo || item.bfSpecRgstNo || '';
   const url = item.bidNtceUrl || item.linkUrl || (bidNo ? `https://www.g2b.go.kr:8101/ep/tbid/tbBidList.do?bidno=${bidNo}` : "https://www.g2b.go.kr");
   return {
-    id: `${item.bidNtceNo||item.rcptDocPblancNo||''}-${item.bidNtceOrd||'000'}-${item.isPreSpec?'P':'B'}`,
-    bidNo: bidNo,
-    title: item.bidNtceNm || item.rcptDocPblancNm || '',
+    id: `${bidNo}-${item.bidNtceOrd||'000'}-${item.isPreSpec?'P':'B'}`,
+    bidNo, title: item.bidNtceNm || item.rcptDocPblancNm || item.bfSpecRgstNm || '',
     client: item.dminsttNm || item.ntceInsttNm || '',
-    deadline: dlRaw,
-    notice: (item.bidNtceDt || '').slice(0,10),
+    deadline: dlRaw, notice: (item.bidNtceDt || '').slice(0,10),
     dday, budget: fmtAmt(item.presmptPrce || item.bdgtAmt),
     rawBudget, track: item.track || 'B',
     industryStatus: item.industryStatus || 'unknown',
@@ -546,18 +528,19 @@ function parseBid(item, kw) {
 }
 
 function setLoading(on) {
-  document.getElementById('searchIco').className = on ? 'fas fa-circle-notch text-xs spin' : 'fas fa-magnifying-glass text-xs';
-  document.getElementById('searchTxt').textContent = on ? '검색 중...' : '검색';
+  document.getElementById('searchIco').className = on ? 'fas fa-circle-notch text-xs spin' : 'fas fa-rotate text-xs';
+  document.getElementById('searchTxt').textContent = on ? '업데이트 중...' : '업데이트';
   document.getElementById('searchBtn').disabled = on;
 }
 
 function showBanner(type, msg) {
   const b = document.getElementById('banner');
   const cfg = { ok: 'bg-emerald-900/40 border-emerald-700 text-emerald-300', warn: 'bg-yellow-900/40 border-yellow-700 text-yellow-300' }[type];
-  b.className = `mb-6 p-4 rounded-2xl border text-sm flex items-start gap-3 ${cfg}`;
+  b.className = `mb-6 p-4 rounded-2xl border text-sm ${cfg}`;
+  b.style.whiteSpace = 'pre-line';
   b.textContent = msg;
   b.classList.remove('hidden');
-  setTimeout(hideBanner, 5000);
+  setTimeout(hideBanner, 6000);
 }
 function hideBanner() { document.getElementById('banner').classList.add('hidden'); }
 
@@ -568,6 +551,18 @@ function updateKPI() {
   document.getElementById('k3').textContent = live.filter(b=>b.track==='A').length;
   document.getElementById('k4').textContent = live.filter(b=>b.track==='B').length;
   document.getElementById('k5').textContent = live.filter(b=>b.track==='P').length;
+}
+
+function filterByKpi(filter) {
+  if (kpiFilter === filter) {
+    kpiFilter = null;
+  } else {
+    kpiFilter = filter;
+  }
+  document.querySelectorAll('.kpi-card').forEach(c => {
+    c.classList.toggle('active', c.dataset.filter === kpiFilter);
+  });
+  renderCards();
 }
 
 function renderKwTags() {
@@ -589,8 +584,24 @@ function isParticipating(b) {
 
 function renderCards() {
   let live = DATA.filter(b => b.dday >= 0);
+  
+  // KPI 필터
+  if (kpiFilter === 'urgent') live = live.filter(b => b.dday <= 7 && b.track !== 'P');
+  else if (kpiFilter === 'A') live = live.filter(b => b.track === 'A');
+  else if (kpiFilter === 'B') live = live.filter(b => b.track === 'B');
+  else if (kpiFilter === 'P') live = live.filter(b => b.track === 'P');
+  
+  // 검색
+  const searchKw = document.getElementById('searchInput')?.value.toLowerCase() || '';
+  if (searchKw) live = live.filter(b => (b.title||'').toLowerCase().includes(searchKw) || (b.client||'').toLowerCase().includes(searchKw));
+  
+  // 키워드 필터
   if (selectedKw.length) live = live.filter(b => (b.keywords || [b.kw]).some(k => selectedKw.includes(k)));
+  
+  // 참가가능만
   if (document.getElementById('onlyEligible')?.checked) live = live.filter(b => b.industryStatus === 'match' || b.industryStatus === 'no_limit');
+  
+  // 정렬
   const sortBy = document.getElementById('sortBy')?.value || 'deadline';
   live.sort((a, b) => {
     if (sortBy === 'deadline') return a.dday - b.dday;
@@ -602,6 +613,7 @@ function renderCards() {
     }
     return 0;
   });
+  
   const empty = `<div class="mc rounded-3xl p-8 border border-slate-700 text-center text-slate-500 text-sm">공고 없음</div>`;
   const mk = arr => arr.length ? arr.map(cardHtml).join('') : empty;
   document.getElementById('preSpec').innerHTML = mk(live.filter(b=>b.track==='P'));
@@ -616,16 +628,16 @@ function cardHtml(b) {
   const dc = b.dday<=7 ? 'text-red-400' : b.dday<=14 ? 'text-yellow-400' : 'text-slate-500';
   let indBadge = '';
   if (b.industryStatus === 'match') indBadge = '<span class="text-xs px-2 py-1 bg-emerald-900 text-emerald-400 rounded-xl font-bold">✓ 참가가능</span>';
-  else if (b.industryStatus === 'mismatch') indBadge = `<span class="text-xs px-2 py-1 bg-red-900/60 text-red-400 rounded-xl">⚠ 업종 불일치${b.industryName?': '+b.industryName.slice(0,15):''}</span>`;
+  else if (b.industryStatus === 'mismatch') indBadge = `<span class="text-xs px-2 py-1 bg-red-900/60 text-red-400 rounded-xl">⚠ 업종 불일치</span>`;
   else if (b.industryStatus === 'no_limit') indBadge = '<span class="text-xs px-2 py-1 bg-slate-700 text-slate-300 rounded-xl">제한 없음</span>';
   const participating = isParticipating(b);
-  let participationUI;
+  let pUI;
   if (isAdmin) {
-    participationUI = `<div class="flex items-center gap-2" onclick="event.stopPropagation()"><input type="checkbox" ${participating?'checked':''} onchange="onCheckParticipate('${b.id}',this.checked)" class="accent-red-500 w-4 h-4 cursor-pointer"><span class="text-xs ${participating?'text-red-400 font-bold':'text-slate-400'}">${participating?'참여중':'참여'}</span></div>`;
+    pUI = `<div class="flex items-center gap-2" onclick="event.stopPropagation()"><input type="checkbox" ${participating?'checked':''} onchange="onCheckParticipate('${b.id}',this.checked)" class="accent-red-500 w-4 h-4 cursor-pointer"><span class="text-xs ${participating?'text-red-400 font-bold':'text-slate-400'}">${participating?'참여중':'참여'}</span></div>`;
   } else if (participating) {
-    participationUI = `<span class="text-xs px-2 py-1 bg-red-900/40 text-red-300 rounded-xl font-bold">🔴 참여중</span>`;
-  } else { participationUI = ''; }
-  return `<div class="mc rounded-3xl p-5 border ${participating?'border-red-500/50':'border-slate-700'}">
+    pUI = `<span class="text-xs px-2 py-1 bg-red-900/40 text-red-300 rounded-xl font-bold">🔴 참여중</span>`;
+  } else { pUI = ''; }
+  return `<div class="mc rounded-3xl p-4 md:p-5 border ${participating?'border-red-500/50':'border-slate-700'}">
     <div class="flex justify-between items-start mb-3">
       <div class="flex flex-wrap gap-1.5">
         <span class="text-xs px-3 py-1 bg-${col}-900 text-${col}-400 rounded-2xl font-medium">${trackName}</span>
@@ -635,7 +647,7 @@ function cardHtml(b) {
       <span class="${dc} text-2xl font-bold shrink-0 ml-2">D-${b.dday}</span>
     </div>
     <div class="mb-3"><p class="font-semibold text-sm leading-snug text-white lc2">${b.title}</p><p class="text-xs text-slate-400 mt-1">${b.client}</p></div>
-    <div class="flex items-center justify-between text-sm mb-3"><div><span class="text-xs text-slate-500">예상</span><span class="font-bold ml-1 text-white text-sm">${b.budget}</span></div>${participationUI}</div>
+    <div class="flex items-center justify-between text-sm mb-3"><div><span class="text-xs text-slate-500">예상</span><span class="font-bold ml-1 text-white text-sm">${b.budget}</span></div>${pUI}</div>
     <div class="mb-3">${indBadge}</div>
     <a href="${b.url}" target="_blank" class="block w-full py-2 bg-slate-700/50 hover:bg-blue-600 rounded-xl text-xs font-semibold text-center text-slate-300 hover:text-white transition flex items-center justify-center gap-1.5"><i class="fas fa-external-link-alt"></i>공고 보기</a>
     <div class="mt-2 text-xs text-slate-600"><i class="fas fa-clock mr-1"></i>${b.deadline}</div>
@@ -649,7 +661,7 @@ function onCheckParticipate(bidId, checked) {
   if (checked) { openHistModal(bidId); }
   else {
     const existing = HISTORY.find(h => h.bidNtceNo === b.bidNo);
-    if (existing && confirm('참여 등록을 취소하시겠습니까?\n(히스토리에서도 삭제됩니다)')) deleteHistory(existing.id, true);
+    if (existing && confirm('참여 등록을 취소하시겠습니까?')) deleteHistory(existing.id, true);
     else renderCards();
   }
 }
@@ -662,12 +674,12 @@ function switchTab(t) {
   const tHist = document.getElementById('tabHist');
   if (t === 'dash') {
     dash.classList.remove('hidden'); hist.classList.add('hidden');
-    tDash.className = 'px-4 py-2 rounded-xl text-sm font-semibold bg-slate-700 text-white';
-    tHist.className = 'px-4 py-2 rounded-xl text-sm font-semibold text-slate-400';
+    tDash.className = 'px-3 md:px-4 py-2 rounded-xl text-sm font-semibold bg-slate-700 text-white';
+    tHist.className = 'px-3 md:px-4 py-2 rounded-xl text-sm font-semibold text-slate-400';
   } else {
     dash.classList.add('hidden'); hist.classList.remove('hidden');
-    tHist.className = 'px-4 py-2 rounded-xl text-sm font-semibold bg-slate-700 text-white';
-    tDash.className = 'px-4 py-2 rounded-xl text-sm font-semibold text-slate-400';
+    tHist.className = 'px-3 md:px-4 py-2 rounded-xl text-sm font-semibold bg-slate-700 text-white';
+    tDash.className = 'px-3 md:px-4 py-2 rounded-xl text-sm font-semibold text-slate-400';
     renderHistory();
   }
 }
@@ -760,18 +772,18 @@ function _renderHistList() {
   let list = HISTORY;
   if (search) list = list.filter(h => (h.title || '').toLowerCase().includes(search) || (h.client || '').toLowerCase().includes(search) || (h.memo || '').toLowerCase().includes(search));
   if (filter) list = list.filter(h => h.result === filter);
-  const resultMap = { won: ['🏆 당선', 'bg-emerald-900 text-emerald-400'], lost: ['❌ 낙선', 'bg-red-900 text-red-400'], pending: ['⏳ 대기 중', 'bg-yellow-900 text-yellow-400'] };
+  const rm = { won: ['🏆 당선', 'bg-emerald-900 text-emerald-400'], lost: ['❌ 낙선', 'bg-red-900 text-red-400'], pending: ['⏳ 대기 중', 'bg-yellow-900 text-yellow-400'] };
   const html = list.length === 0 
     ? `<div class="mc rounded-3xl p-10 border border-slate-700 text-center text-slate-500 text-sm">참여 이력이 없습니다</div>`
     : list.map(h => {
-        const [resTxt, resCls] = resultMap[h.result] || resultMap.pending;
-        const trackName = {A: 'Track A', B: 'Track B', P: '사전규격'}[h.track] || h.track;
+        const [resTxt, resCls] = rm[h.result] || rm.pending;
+        const tn = {A: 'Track A', B: 'Track B', P: '사전규격'}[h.track] || h.track;
         const dt = h.participatedAt ? new Date(h.participatedAt).toLocaleDateString('ko-KR') : '';
-        return `<div class="mc rounded-3xl p-5 border border-slate-700">
+        return `<div class="mc rounded-3xl p-4 md:p-5 border border-slate-700">
           <div class="flex justify-between items-start mb-3 flex-wrap gap-2">
             <div class="flex flex-wrap gap-1.5">
               <span class="text-xs px-3 py-1 ${resCls} rounded-2xl font-bold">${resTxt}</span>
-              <span class="text-xs px-2 py-1 bg-slate-700 text-slate-300 rounded-xl">${trackName}</span>
+              <span class="text-xs px-2 py-1 bg-slate-700 text-slate-300 rounded-xl">${tn}</span>
               <span class="text-xs px-2 py-1 bg-slate-700 text-slate-400 rounded-xl">${h.keyword}</span>
             </div>
             <span class="text-xs text-slate-500">참여일: ${dt}</span>
@@ -779,7 +791,7 @@ function _renderHistList() {
           <div class="mb-3"><p class="font-semibold text-base text-white">${h.title}</p><p class="text-sm text-slate-400 mt-1">${h.client} · 예산 ${h.budget}</p></div>
           ${h.memo ? `<div class="mb-3 p-3 bg-slate-800 rounded-xl text-sm text-slate-300 whitespace-pre-wrap">${h.memo}</div>` : ''}
           ${h.attachmentUrl ? `<div class="mb-3"><a href="${h.attachmentUrl}" target="_blank" class="text-xs text-blue-400 hover:underline"><i class="fas fa-paperclip mr-1"></i>${h.attachmentName || '첨부파일'}</a></div>` : ''}
-          <div class="flex gap-2">
+          <div class="flex gap-2 flex-wrap">
             <a href="${h.url}" target="_blank" class="flex-1 py-2 bg-slate-700/50 hover:bg-blue-600 rounded-xl text-xs font-semibold text-center text-slate-300 hover:text-white transition"><i class="fas fa-external-link-alt mr-1"></i>공고 보기</a>
             ${isAdmin ? `<button onclick="editHistory('${h.id}')" class="px-4 py-2 bg-blue-900 hover:bg-blue-700 text-blue-300 rounded-xl text-xs font-semibold"><i class="fas fa-edit mr-1"></i>수정</button><button onclick="deleteHistory('${h.id}')" class="px-4 py-2 bg-red-900/60 hover:bg-red-700 text-red-300 rounded-xl text-xs font-semibold"><i class="fas fa-trash mr-1"></i>삭제</button>` : ''}
           </div>
@@ -852,19 +864,19 @@ function showDay(day) {
     const d = new Date(h.deadline);
     return d.getFullYear()===calY && d.getMonth()+1===calM && d.getDate()===day;
   });
-  const resultMap = {won: '🏆', lost: '❌', pending: '⏳'};
+  const rm = {won: '🏆', lost: '❌', pending: '⏳'};
   document.getElementById('calBids').innerHTML = f.length === 0
     ? `<p class="text-slate-500 py-4 text-center text-sm">마감 공고 없음</p>`
     : f.map(h => {
-        const dlDate = new Date(h.deadline);
-        const dday = Math.ceil((dlDate - new Date()) / 86400000);
-        return `<a href="${h.url}" target="_blank" class="flex justify-between items-center p-3 bg-slate-800 hover:bg-slate-700 rounded-2xl cursor-pointer gap-2"><div class="min-w-0 flex-1"><div class="font-medium text-sm truncate">${resultMap[h.result]||''} ${h.title}</div><div class="text-xs text-slate-400">${h.client}</div></div><span class="font-extrabold text-red-400 shrink-0 text-sm">${dday>=0?'D-'+dday:'마감'}</span></a>`;
+        const dd = Math.ceil((new Date(h.deadline) - new Date()) / 86400000);
+        return `<a href="${h.url}" target="_blank" class="flex justify-between items-center p-3 bg-slate-800 hover:bg-slate-700 rounded-2xl cursor-pointer gap-2"><div class="min-w-0 flex-1"><div class="font-medium text-sm truncate">${rm[h.result]||''} ${h.title}</div><div class="text-xs text-slate-400">${h.client}</div></div><span class="font-extrabold text-red-400 shrink-0 text-sm">${dd>=0?'D-'+dd:'마감'}</span></a>`;
       }).join('');
 }
 
 window.onload = async () => { 
   await verifyAuth();
   buildCal();
+  document.getElementById('startupPw').value = '';
   document.getElementById('startupPw').focus(); 
 };
 </script>
