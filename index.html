@@ -890,10 +890,11 @@ function showDay(day) {
 window.onload = async () => { 
   await verifyAuth();
   buildCal();
-if(document.getElementById('startupPw')) {
-  document.getElementById('startupPw').value = '';
-  document.getElementById('startupPw').focus();
-}
+  if(document.getElementById('startupPw')) {
+    document.getElementById('startupPw').value = '';
+    document.getElementById('startupPw').focus();
+  }
+};
 </script>
 </body>
 </html>
