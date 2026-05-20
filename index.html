@@ -47,9 +47,9 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
       onkeydown="if(event.key==='Enter') unlockDash()">
     <div id="startupErr" class="text-red-400 text-sm mb-4 hidden font-bold">❌ 비밀번호가 일치하지 않습니다.</div>
     <button onclick="unlockDash()" class="w-full py-4 bg-blue-600 hover:bg-blue-500 rounded-2xl text-white font-bold transition text-lg shadow-lg shadow-blue-900/40">입장하기</button>
+    <button onclick="openMasterModal()" class="mt-4 text-xs text-slate-600 hover:text-slate-400 transition">마스터 초기화</button>
   </div>
 </div>
-
 <div id="mainWrap" style="display: none;">
 
   <div id="loginModal" class="modal hidden">
@@ -88,7 +88,22 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
     </div>
   </div>
 
-  <div id="histModal" class="modal hidden">
+  <div id="masterModal" class="modal hidden">
+    <div class="bg-slate-900 rounded-3xl p-6 md:p-8 w-full max-w-[400px] border border-red-900">
+      <h2 class="text-2xl font-bold text-red-400 mb-2">🔑 마스터 초기화</h2>
+      <p class="text-slate-400 text-sm mb-6">마스터키로 모든 비밀번호를 초기값으로 되돌립니다.</p>
+      <input type="password" id="masterPw" autocomplete="off" placeholder="마스터키 입력"
+        class="w-full px-4 py-3 bg-slate-800 border border-red-900 rounded-2xl text-white mb-3 focus:outline-none focus:border-red-500">
+      <div id="masterErr" class="text-red-400 text-sm mb-3 hidden"></div>
+      <div id="masterOk" class="text-emerald-400 text-sm mb-3 hidden"></div>
+      <div class="flex gap-2">
+        <button onclick="doMasterReset()" class="flex-1 py-3 bg-red-700 hover:bg-red-600 rounded-2xl text-white font-bold transition">초기화</button>
+        <button onclick="closeMasterModal()" class="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-2xl text-white transition">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="histModal"
     <div class="bg-slate-900 rounded-3xl p-6 md:p-8 w-full max-w-[480px] border border-slate-700 max-h-[90vh] overflow-y-auto">
       <h2 class="text-2xl font-bold text-white mb-6" id="histModalTitle">참여 정보 입력</h2>
       <input type="hidden" id="histId">
@@ -464,6 +479,40 @@ async function doChangePw() {
       err.textContent = d.error;
       err.classList.remove('hidden');
     }
+    function openMasterModal() {
+  document.getElementById('masterModal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('masterPw').focus(), 100);
+}
+function closeMasterModal() {
+  document.getElementById('masterModal').classList.add('hidden');
+  document.getElementById('masterPw').value = '';
+  document.getElementById('masterErr').classList.add('hidden');
+  document.getElementById('masterOk').classList.add('hidden');
+}
+async function doMasterReset() {
+  const pw = document.getElementById('masterPw').value;
+  const err = document.getElementById('masterErr');
+  const ok = document.getElementById('masterOk');
+  err.classList.add('hidden'); ok.classList.add('hidden');
+  try {
+    const r = await fetch(`${API_BASE}/auth?action=master-reset`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pw })
+    });
+    const d = await r.json();
+    if (d.success) {
+      ok.textContent = '✅ ' + d.message;
+      ok.classList.remove('hidden');
+      setTimeout(closeMasterModal, 2000);
+    } else {
+      err.textContent = '❌ ' + d.error;
+      err.classList.remove('hidden');
+    }
+  } catch (e) {
+    err.textContent = '오류: ' + e.message;
+    err.classList.remove('hidden');
+  }
+}
   } catch (e) {
     err.textContent = '오류: ' + e.message;
     err.classList.remove('hidden');
