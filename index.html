@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>나라장터 입찰계획 — 나라장터 실시간</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="나라장터">  
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 <style>
@@ -1018,6 +1025,30 @@ window.onload = async () => {
     document.getElementById('startupPw').focus();
   }
 };
+</script>
+<!-- PWA 설치 버튼 -->
+<div id="installPrompt" class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-2xl shadow-2xl shadow-blue-900/50 cursor-pointer z-50 flex items-center gap-2 transition-all hidden">
+  <i class="fas fa-download"></i>
+  <span>앱 설치하기</span>
+  <button onclick="event.stopPropagation();document.getElementById('installPrompt').style.display='none'" class="ml-2 text-white/70 hover:text-white">✕</button>
+</div>
+<script>
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const btn = document.getElementById('installPrompt');
+  btn.classList.remove('hidden');
+  btn.onclick = async () => {
+    btn.classList.add('hidden');
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+  };
+});
+window.addEventListener('appinstalled', () => {
+  document.getElementById('installPrompt').classList.add('hidden');
+});
 </script>
 </body>
 </html>
