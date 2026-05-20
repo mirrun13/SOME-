@@ -304,6 +304,10 @@ async function unlockDash() {
         token = d.token;
         localStorage.setItem('some_token', token);
         setAdmin(true);
+      } else {
+        token = '';
+        localStorage.removeItem('some_token');
+        setAdmin(false);
       }
       document.getElementById('startupLock').style.display = 'none';
       document.getElementById('mainWrap').style.display = 'block';
