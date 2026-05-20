@@ -816,8 +816,8 @@ function _renderHistList() {
           ${h.memo ? `<div class="mb-3 p-3 bg-slate-800 rounded-xl text-sm text-slate-300 whitespace-pre-wrap">${h.memo}</div>` : ''}
           ${h.attachmentUrl ? `<div class="mb-3"><a href="${h.attachmentUrl}" target="_blank" class="text-xs text-blue-400 hover:underline"><i class="fas fa-paperclip mr-1"></i>${h.attachmentName || '첨부파일'}</a></div>` : ''}
           <div class="flex gap-2 flex-wrap">
-            <a href="${h.url}" target="_blank" class="flex-1 py-2 bg-slate-700/50 hover:bg-blue-600 rounded-xl text-xs font-semibold text-center text-slate-300 hover:text-white transition"><i class="fas fa-external-link-alt mr-1"></i>공고 보기</a>
-            ${isAdmin ? `<button onclick="editHistory('${h.id}')" class="px-4 py-2 bg-blue-900 hover:bg-blue-700 text-blue-300 rounded-xl text-xs font-semibold"><i class="fas fa-edit mr-1"></i>수정</button><button onclick="deleteHistory('${h.id}')" class="px-4 py-2 bg-red-900/60 hover:bg-red-700 text-red-300 rounded-xl text-xs font-semibold"><i class="fas fa-trash mr-1"></i>삭제</button>` : ''}
+<a href="${h.url}" target="_blank" class="flex-1 py-2 bg-slate-700/50 hover:bg-blue-600 rounded-xl text-xs font-semibold text-center text-slate-300 hover:text-white transition"><i class="fas fa-external-link-alt mr-1"></i>공고 보기</a>
+${isAdmin ? `<button onclick="updateHistoryResult('${h.id}','won')" class="px-3 py-2 bg-emerald-900/60 hover:bg-emerald-700 text-emerald-300 rounded-xl text-xs font-semibold"><i class="fas fa-trophy mr-1"></i>당선</button><button onclick="updateHistoryResult('${h.id}','lost')" class="px-3 py-2 bg-red-900/60 hover:bg-red-700 text-red-300 rounded-xl text-xs font-semibold"><i class="fas fa-times mr-1"></i>낙선</button><button onclick="editHistory('${h.id}')" class="px-3 py-2 bg-blue-900 hover:bg-blue-700 text-blue-300 rounded-xl text-xs font-semibold"><i class="fas fa-edit mr-1"></i>수정</button><button onclick="deleteHistory('${h.id}')" class="px-3 py-2 bg-red-900/60 hover:bg-red-700 text-red-300 rounded-xl text-xs font-semibold"><i class="fas fa-trash mr-1"></i>삭제</button>` : ''}
           </div>
         </div>`;
       }).join('');
