@@ -828,20 +828,22 @@ ${isAdmin ? `<button onclick="updateHistoryResult('${h.id}','won')" class="px-3 
 }
 async function updateHistoryResult(id, result) {
   const token = localStorage.getItem('some_token');
-  const res = await fetch(`${API_BASE}/history`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ token, id, updates: { result } })
-  });
-  const d = await res.json();
-  if (d.success) {
-   showBanner('ok', result === 'won' ? '🏆 당선 처리되었습니다!' : '❌ 낙선 처리되었습니다!');
-    await fetchHistory();
-    renderHistory();
-   
-  } else {
-    showBanner('warn', '저장 실패: ' + d.error);
-  }
+  try {
+    const res = await fetch(`${API_BASE}/history`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, id, updates: { result } })
+    });
+    const d = await res.json();
+    if (d.success) {
+      showBanner('ok', result === 'won' ? '🏆 당선 처리되었습니다!' : '❌ 낙선 처리되었습니다!');
+      await fetchHistory();
+      renderHistory();
+    } else {
+      showBanner('warn', '저장 실패: ' + d.error);
+    }
+  } catch (e) { showBanner('warn', '오류: ' + e.message); }
+}
 }
 function editHistory(id) {
   const h = HISTORY.find(x => x.id === id);
