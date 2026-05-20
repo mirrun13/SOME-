@@ -801,7 +801,7 @@ function _renderHistList() {
     ? `<div class="mc rounded-3xl p-10 border border-slate-700 text-center text-slate-500 text-sm">참여 이력이 없습니다</div>`
     : list.map(h => {
         const [resTxt, resCls] = rm[h.result] || rm.pending;
-        const tn = {A: 'Track A', B: 'Track B', P: '사전규격'}[h.track] || h.track;
+        const tn = {A: '제안', B: '투찰', P: '사전규격'}[h.track] || h.track;
         const dt = h.participatedAt ? new Date(h.participatedAt).toLocaleDateString('ko-KR') : '';
         return `<div class="mc rounded-3xl p-4 md:p-5 border border-slate-700">
           <div class="flex justify-between items-start mb-3 flex-wrap gap-2">
@@ -825,7 +825,7 @@ ${isAdmin ? `<button onclick="updateHistoryResult('${h.id}','won')" class="px-3 
 }
 async function updateHistoryResult(id, result) {
   const token = localStorage.getItem('some_token');
-  const res = await fetch(`${API_BASE}/api/history`, {
+  const res = await fetch(`${API_BASE}/history`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ token, id, updates: { result } })
