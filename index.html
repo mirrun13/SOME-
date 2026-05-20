@@ -682,14 +682,31 @@ function onCheckParticipate(bidId, checked) {
   if (!isAdmin) return;
   const b = DATA.find(x => x.id === bidId);
   if (!b) return;
-  if (checked) { openHistModal(bidId); }
-  else {
+  if (checked) {
+    const data = {
+      bidNtceNo: b.bidNo, title: b.title, client: b.client, budget: b.budget,
+      deadline: b.deadline, track: b.track, keyword: b.kw, url: b.url,
+      result: 'pending', memo: '', attachmentUrl: '', attachmentName: '',
+      participatedAt: new Date().toISOString()
+    };
+    fetch(`${API_BASE}/history`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, item: data })
+    }).then(r => r.json()).then(d => {
+      if (d.success) {
+        fetchHistory().then(() => { renderCards(); buildCal(); });
+        showBanner('ok', '✅ 참여 등록되었습니다.');
+      } else {
+        showBanner('warn', '저장 실패: ' + d.error);
+        renderCards();
+      }
+    });
+  } else {
     const existing = HISTORY.find(h => h.bidNtceNo === b.bidNo);
     if (existing && confirm('참여 등록을 취소하시겠습니까?')) deleteHistory(existing.id, true);
     else renderCards();
   }
 }
-
 function switchTab(t) {
   currentTab = t;
   const dash = document.getElementById('dashView');
