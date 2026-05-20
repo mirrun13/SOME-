@@ -833,7 +833,8 @@ async function updateHistoryResult(id, result) {
   const d = await res.json();
   if (d.success) {
     showBanner('ok', result === 'won' ? '🏆 당선 처리되었습니다!' : '❌ 낙선 처리되었습니다!');
-    fetchHistory();
+   await fetchHistory();
+    renderHistory();
   } else {
     showBanner('warn', '저장 실패: ' + d.error);
   }
