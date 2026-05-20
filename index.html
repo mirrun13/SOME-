@@ -777,10 +777,21 @@ function closeHistModal() {
 async function deleteHistory(id, skipConfirm) {
   if (!isAdmin) return;
   if (!skipConfirm && !confirm('정말 삭제하시겠습니까?')) return;
+  const pw = prompt('삭제 확인을 위해 관리자 비밀번호를 입력해주세요:');
+  if (!pw) return;
   try {
+    const verifyR = await fetch(`${API_BASE}/auth?action=login`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pw })
+    });
+    const verifyD = await verifyR.json();
+    if (!verifyD.success || verifyD.access !== 'admin') {
+      showBanner('warn', '❌ 관리자 비밀번호가 틀렸습니다.');
+      return;
+    }
     const dr = await fetch(`${API_BASE}/history`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, id }) });
-const dd = await dr.json();
-if (!dd.success) throw new Error(dd.error);
+    const dd = await dr.json();
+    if (!dd.success) throw new Error(dd.error);
     await fetchHistory(); renderHistory(); renderCards(); buildCal();
     showBanner('ok', '삭제되었습니다.');
   } catch (e) { showBanner('warn', '삭제 실패: ' + e.message); }
