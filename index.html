@@ -778,7 +778,9 @@ async function deleteHistory(id, skipConfirm) {
   if (!isAdmin) return;
   if (!skipConfirm && !confirm('정말 삭제하시겠습니까?')) return;
   try {
-    await fetch(`${API_BASE}/history`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, id }) });
+    const dr = await fetch(`${API_BASE}/history`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, id }) });
+const dd = await dr.json();
+if (!dd.success) throw new Error(dd.error);
     await fetchHistory(); renderHistory(); renderCards(); buildCal();
     showBanner('ok', '삭제되었습니다.');
   } catch (e) { showBanner('warn', '삭제 실패: ' + e.message); }
