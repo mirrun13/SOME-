@@ -55,13 +55,17 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
 <div id="masterModal" class="modal hidden">
   <div class="bg-slate-900 rounded-3xl p-6 md:p-8 w-full max-w-[400px] border border-red-900">
     <h2 class="text-2xl font-bold text-red-400 mb-2">🔑 마스터 초기화</h2>
-    <p class="text-slate-400 text-sm mb-6">마스터키로 모든 비밀번호를 초기값으로 되돌립니다.</p>
+    <p class="text-slate-400 text-sm mb-6">마스터키 인증 후 새 비밀번호를 설정합니다.</p>
     <input type="password" id="masterPw" autocomplete="off" placeholder="마스터키 입력"
       class="w-full px-4 py-3 bg-slate-800 border border-red-900 rounded-2xl text-white mb-3 focus:outline-none focus:border-red-500">
+    <input type="password" id="newAdminPw" autocomplete="off" placeholder="새 관리자 비밀번호 (4자 이상)"
+      class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-2xl text-white mb-3 focus:outline-none focus:border-blue-500">
+    <input type="password" id="newGuestPw2" autocomplete="off" placeholder="새 직원 비밀번호 (4자 이상)"
+      class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-2xl text-white mb-3 focus:outline-none focus:border-emerald-500">
     <div id="masterErr" class="text-red-400 text-sm mb-3 hidden"></div>
     <div id="masterOk" class="text-emerald-400 text-sm mb-3 hidden"></div>
     <div class="flex gap-2">
-      <button onclick="doMasterReset()" class="flex-1 py-3 bg-red-700 hover:bg-red-600 rounded-2xl text-white font-bold transition">초기화</button>
+      <button onclick="doMasterReset()" class="flex-1 py-3 bg-red-700 hover:bg-red-600 rounded-2xl text-white font-bold transition">초기화 및 설정</button>
       <button onclick="closeMasterModal()" class="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-2xl text-white transition">취소</button>
     </div>
   </div>
@@ -497,28 +501,28 @@ function openMasterModal() {
   setTimeout(() => document.getElementById('masterPw').focus(), 100);
 }
 
-function closeMasterModal() {
-  document.getElementById('masterModal').classList.add('hidden');
-  document.getElementById('masterPw').value = '';
-  document.getElementById('masterErr').classList.add('hidden');
-  document.getElementById('masterOk').classList.add('hidden');
-}
+closeMasterModal
 
 async function doMasterReset() {
   const pw = document.getElementById('masterPw').value;
+  const newAdmin = document.getElementById('newAdminPw').value;
+  const newGuest = document.getElementById('newGuestPw2').value;
   const err = document.getElementById('masterErr');
   const ok = document.getElementById('masterOk');
   err.classList.add('hidden'); ok.classList.add('hidden');
+  if (!pw) { err.textContent = '마스터키를 입력해주세요.'; err.classList.remove('hidden'); return; }
+  if (!newAdmin || newAdmin.length < 4) { err.textContent = '새 관리자 비밀번호는 4자 이상이어야 합니다.'; err.classList.remove('hidden'); return; }
+  if (!newGuest || newGuest.length < 4) { err.textContent = '새 직원 비밀번호는 4자 이상이어야 합니다.'; err.classList.remove('hidden'); return; }
   try {
     const r = await fetch(`${API_BASE}/auth?action=master-reset`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: pw })
+      body: JSON.stringify({ password: pw, newAdminPw: newAdmin, newGuestPw: newGuest })
     });
     const d = await r.json();
     if (d.success) {
       ok.textContent = '✅ ' + d.message;
       ok.classList.remove('hidden');
-      setTimeout(closeMasterModal, 2000);
+      setTimeout(closeMasterModal, 2500);
     } else {
       err.textContent = '❌ ' + d.error;
       err.classList.remove('hidden');
