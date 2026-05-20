@@ -235,10 +235,10 @@ body{font-family:'Noto Sans KR',system-ui,sans-serif;}
 
     <div id="histView" class="hidden">
       <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-6 md:mb-8">
-       <div class="mc p-3 md:p-5 rounded-3xl border border-slate-700 cursor-pointer" onclick="filterHistByResult('')"><div class="text-xs text-slate-400 mb-1">전체 참여</div><div class="kn" id="h1">—</div></div>
-<div class="mc p-3 md:p-5 rounded-3xl border-l-4 border-emerald-500 cursor-pointer" onclick="filterHistByResult('won')"><div class="text-xs text-emerald-400 mb-1">당선</div><div class="kn text-emerald-400" id="h2">—</div></div>
-<div class="mc p-3 md:p-5 rounded-3xl border-l-4 border-red-500 cursor-pointer" onclick="filterHistByResult('lost')"><div class="text-xs text-red-400 mb-1">낙선</div><div class="kn text-red-400" id="h3">—</div></div>
-<div class="mc p-3 md:p-5 rounded-3xl border-l-4 border-yellow-500 cursor-pointer" onclick="filterHistByResult('pending')"><div class="text-xs text-yellow-400 mb-1">대기 중</div><div class="kn text-yellow-400" id="h4">—</div></div>
+       <div class="mc p-3 md:p-5 rounded-3xl border border-slate-700 kpi-card" onclick="filterHistByResult('')"><div class="text-xs text-slate-400 mb-1">전체 참여</div><div class="kn" id="h1">—</div></div>
+<div class="mc p-3 md:p-5 rounded-3xl border-l-4 border-emerald-500 kpi-card" onclick="filterHistByResult('won')"><div class="text-xs text-emerald-400 mb-1">당선</div><div class="kn text-emerald-400" id="h2">—</div></div>
+<div class="mc p-3 md:p-5 rounded-3xl border-l-4 border-red-500 kpi-card" onclick="filterHistByResult('lost')"><div class="text-xs text-red-400 mb-1">낙선</div><div class="kn text-red-400" id="h3">—</div></div>
+<div class="mc p-3 md:p-5 rounded-3xl border-l-4 border-yellow-500 kpi-card" onclick="filterHistByResult('pending')"><div class="text-xs text-yellow-400 mb-1">대기 중</div><div class="kn text-yellow-400" id="h4">—</div></div>
       </div>
       <div class="mb-6 flex flex-col md:flex-row gap-3">
         <input id="histSearch" placeholder="검색 (공고명, 발주처...)" oninput="renderHistory()" class="flex-1 px-4 py-2 bg-slate-800 border border-slate-700 rounded-2xl text-sm text-white focus:outline-none focus:border-blue-500">
