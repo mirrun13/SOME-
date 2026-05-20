@@ -785,7 +785,10 @@ if (!dd.success) throw new Error(dd.error);
     showBanner('ok', '삭제되었습니다.');
   } catch (e) { showBanner('warn', '삭제 실패: ' + e.message); }
 }
-
+function filterHistByResult(result) {
+  document.getElementById('histFilter').value = result;
+  renderHistory();
+}
 function renderHistory() {
   if (HISTORY.length === 0) fetchHistory().then(() => _renderHistList());
   else _renderHistList();
