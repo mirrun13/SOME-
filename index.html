@@ -823,7 +823,21 @@ ${isAdmin ? `<button onclick="updateHistoryResult('${h.id}','won')" class="px-3 
       }).join('');
   document.getElementById('histList').innerHTML = html;
 }
-
+async function updateHistoryResult(id, result) {
+  const token = localStorage.getItem('some_token');
+  const res = await fetch(`${API_BASE}/api/history`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, id, updates: { result } })
+  });
+  const d = await res.json();
+  if (d.success) {
+    showBanner('ok', result === 'won' ? '🏆 당선 처리되었습니다!' : '❌ 낙선 처리되었습니다!');
+    fetchHistory();
+  } else {
+    showBanner('warn', '저장 실패: ' + d.error);
+  }
+}
 function editHistory(id) {
   const h = HISTORY.find(x => x.id === id);
   if (!h) return;
