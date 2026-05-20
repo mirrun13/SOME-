@@ -501,7 +501,14 @@ function openMasterModal() {
   setTimeout(() => document.getElementById('masterPw').focus(), 100);
 }
 
-closeMasterModal
+function closeMasterModal() {
+  document.getElementById('masterModal').classList.add('hidden');
+  document.getElementById('masterPw').value = '';
+  document.getElementById('newAdminPw').value = '';
+  document.getElementById('newGuestPw2').value = '';
+  document.getElementById('masterErr').classList.add('hidden');
+  document.getElementById('masterOk').classList.add('hidden');
+}
 
 async function doMasterReset() {
   const pw = document.getElementById('masterPw').value;
