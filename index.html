@@ -846,8 +846,7 @@ async function updateHistoryResult(id, result) {
     }
   } catch (e) { showBanner('warn', '오류: ' + e.message); }
 }
-}
-function editHistory(id) {
+}function editHistory(id) {
   const h = HISTORY.find(x => x.id === id);
   if (!h) return;
   document.getElementById('histId').value = h.id;
