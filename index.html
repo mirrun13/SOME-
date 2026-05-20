@@ -303,12 +303,12 @@ async function unlockDash() {
       if (d.access === 'admin' && d.token) {
         token = d.token;
         localStorage.setItem('some_token', token);
-        setAdmin(true);
-      } else {
-        token = '';
-        localStorage.removeItem('some_token');
-        setAdmin(false);
-      }
+setAdmin(true);
+} else {
+  token = '';
+  localStorage.removeItem('some_token');
+  setAdmin(false);
+}
       document.getElementById('startupLock').style.display = 'none';
       document.getElementById('mainWrap').style.display = 'block';
       document.getElementById('bodyWrap').classList.remove('overflow-hidden');
