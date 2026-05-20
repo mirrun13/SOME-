@@ -747,11 +747,14 @@ async function saveHistory() {
     participatedAt: existing?.participatedAt || new Date().toISOString()
   };
   try {
+    let r, d;
     if (existing) {
-      await fetch(`${API_BASE}/history`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, id: existing.id, updates: data }) });
+      r = await fetch(`${API_BASE}/history`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, id: existing.id, updates: data }) });
     } else {
-      await fetch(`${API_BASE}/history`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, item: data }) });
+      r = await fetch(`${API_BASE}/history`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, item: data }) });
     }
+    d = await r.json();
+    if (!d.success) throw new Error(d.error);
     await fetchHistory(); closeHistModal(); renderCards(); buildCal();
     if (currentTab === 'hist') renderHistory();
     showBanner('ok', '✅ 저장되었습니다.');
