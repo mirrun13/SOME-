@@ -574,8 +574,9 @@ async function fetchAll(forceRefresh) {
     } else {
       updateKPI(); renderKwTags(); renderCards(); buildCal();
       const now = new Date();
-      const cacheInfo = data.cached ? ` (마지막 업데이트 ${Math.floor(data.cacheAge/60)}분 전)` : ' (실시간)';
-      document.getElementById('subtitle').textContent = `나라장터 연동 · ${now.getMonth()+1}월 ${now.getDate()}일 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}${cacheInfo}`;
+      window._lastUpdateBase = new Date(now.getTime() - (data.cached ? (data.cacheAge * 1000) : 0));
+      window._lastUpdateDateStr = `${now.getMonth()+1}월 ${now.getDate()}일 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+      renderSubtitle();
       showBanner('ok', `✅ 총 ${DATA.filter(b=>b.dday>=0).length}건 (사전규격 ${data.preSpecCount||0}건 포함)`);
     }
   } catch (e) {
@@ -1017,6 +1018,15 @@ function showDay(day) {
       }).join('');
 }
 
+function renderSubtitle() {
+  const base = window._lastUpdateBase;
+  const dateStr = window._lastUpdateDateStr;
+  if (!base || !dateStr) return;
+  const diffMin = Math.floor((Date.now() - base.getTime()) / 60000);
+  const ago = diffMin <= 0 ? '방금 전' : `${diffMin}분 전`;
+  document.getElementById('subtitle').textContent = `나라장터 연동 · ${dateStr} (마지막 업데이트 ${ago})`;
+}
+
 window.onload = async () => {
   await verifyAuth();
   buildCal();
@@ -1024,6 +1034,7 @@ window.onload = async () => {
     document.getElementById('startupPw').value = '';
     document.getElementById('startupPw').focus();
   }
+  setInterval(renderSubtitle, 60000);
 };
 </script>
 <!-- PWA 설치 버튼 -->
